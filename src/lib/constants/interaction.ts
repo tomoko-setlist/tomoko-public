@@ -1,0 +1,1 @@
+export const DROPDOWN_CLOSE_DELAY_MS = 120;

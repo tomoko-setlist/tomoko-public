@@ -1,0 +1,44 @@
+name: データ修正依頼
+description: イベント、セットリスト、曲、メンバーなどのデータ修正を依頼する
+title: "[データ修正]: "
+labels:
+  - data
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 種別
+      options:
+        - イベント
+        - セットリスト
+        - 曲
+        - メンバー
+        - 会場
+        - リリース
+        - その他
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象
+      description: 修正したい対象を、分かる範囲で書いてください。
+      placeholder: "例: 2026-01-01 のイベント名、曲名、メンバー名など"
+  - type: textarea
+    id: current
+    attributes:
+      label: 現在の表示
+      description: 現在どのように表示されているか、分かれば書いてください。
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する修正内容
+      description: どのように直してほしいか、分かる範囲で書いてください。
+  - type: textarea
+    id: source
+    attributes:
+      label: 確認できる情報
+      description: 公式ページ、告知、画像など、確認できる情報があれば書いてください。
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補足
+      description: 追加情報があれば書いてください。

@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply m-0 min-w-[320px] bg-slate-100 text-slate-800;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    @apply rounded-none;
+  }
+}
+
+/* Prevent iOS Safari auto-zoom on focus for small form controls */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+}
+
+@keyframes group-timeline-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

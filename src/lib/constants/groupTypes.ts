@@ -1,0 +1,9 @@
+export const GROUP_TYPE_HELLO_PRO_GROUP = 10;
+export const GROUP_TYPE_HELLO_PRO_UNIT = 20;
+export const GROUP_TYPE_SPECIAL_UNIT = 30;
+export const GROUP_TYPE_SHUFFLE_UNIT = 40;
+export const GROUP_TYPE_CREATOR = 50;
+export const GROUP_TYPE_OG_GROUP_OR_UNIT = 60;
+export const GROUP_TYPE_HELLO_PRO_TRAINEE = 70;
+export const GROUP_TYPE_OTHER = 90;
+

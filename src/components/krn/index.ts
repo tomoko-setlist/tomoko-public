@@ -1,0 +1,1 @@
+export { KrnPage } from "./KrnPage";

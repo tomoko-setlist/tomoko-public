@@ -1,0 +1,110 @@
+export type AppRoute =
+  | { name: "home" }
+  | { name: "krn" }
+  | { name: "about" }
+  | { name: "releases" }
+  | { name: "song-search" }
+  | { name: "song-ranking" }
+  | { name: "member-search" }
+  | { name: "release"; id: number }
+  | { name: "event"; id: number }
+  | { name: "stage"; id: number }
+  | { name: "venue"; id: number }
+  | { name: "artist"; id: number }
+  | { name: "member"; id: number }
+  | { name: "group"; id: number }
+  | { name: "creator"; id: number }
+  | { name: "song"; id: number }
+  | { name: "album"; id: number };
+
+const parseId = (value: string | undefined): number | null => {
+  if (!value) return null
+  const id = Number(value)
+  if (!Number.isFinite(id) || id <= 0) return null
+  return Math.floor(id)
+}
+
+const parseNamedRoute = (name: string | undefined, idRaw?: string): AppRoute | null => {
+  if (!name) return null
+  if (name === "song-search") return { name: "song-search" }
+  if (name === "song-ranking") return { name: "song-ranking" }
+  if (name === "krn") return { name: "krn" }
+  if (name === "about") return { name: "about" }
+  if (name === "releases") return { name: "releases" }
+  if (name === "member-search") return { name: "member-search" }
+  if (name === "home") return { name: "home" }
+
+  const id = parseId(idRaw)
+  if (!id) return null
+  if (name === "release" || name === "event" || name === "stage" || name === "venue" || name === "artist" || name === "member" || name === "group" || name === "creator" || name === "song" || name === "album") {
+    return { name: name, id }
+  }
+  return null
+}
+
+export const parsePathRoute = (pathname: string): AppRoute => {
+  const normalized = pathname.trim() || "/"
+  const [path] = normalized.split("?")
+  const segments = path.split("/").filter(Boolean)
+  const [name, idRaw] = segments
+  return parseNamedRoute(name, idRaw) ?? { name: "home" }
+}
+
+export const parseQueryRoute = (search: string): AppRoute | null => {
+  const raw = search.startsWith("?") ? search.slice(1) : search
+  if (!raw) return null
+  const params = new URLSearchParams(raw)
+  const name = params.get("route")
+  if (!name) return null
+  const id = params.get("id") ?? undefined
+  return parseNamedRoute(name, id)
+}
+
+export const parseLegacyHashLocation = (
+  hash: string,
+): { route: AppRoute; query: string } | null => {
+  const rawHash = hash.startsWith("#") ? hash.slice(1) : hash
+  if (!rawHash.startsWith("/")) {
+    return null
+  }
+  const [path, query = ""] = rawHash.split("?")
+  return {
+    route: parsePathRoute(path),
+    query,
+  }
+}
+
+export const stripLegacyRouteParams = (search: string): string => {
+  const raw = search.startsWith("?") ? search.slice(1) : search
+  const params = new URLSearchParams(raw)
+  params.delete("route")
+  params.delete("id")
+  const next = params.toString()
+  return next ? `?${next}` : ""
+}
+
+export const parseLocationRoute = (
+  pathname: string,
+  search: string,
+): AppRoute => {
+  const byPath = parsePathRoute(pathname)
+  if (byPath.name !== "home") return byPath
+
+  return parseQueryRoute(search) ?? byPath
+}
+
+export const buildPathRoute = (route: AppRoute): string => {
+  if (route.name === "home") return "/"
+  if (route.name === "krn") return "/krn"
+  if (route.name === "about") return "/about"
+  if (route.name === "releases") return "/releases"
+  if (route.name === "song-search") return "/song-search"
+  if (route.name === "song-ranking") return "/song-ranking"
+  if (route.name === "member-search") return "/member-search"
+  return `/${route.name}/${route.id}`
+}
+
+export const buildRouteKey = (route: AppRoute): string => {
+  if ("id" in route) return `${route.name}:${route.id}`
+  return route.name
+}
