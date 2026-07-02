@@ -2561,6 +2561,87 @@ export const searchSongs = async (
     };
 };
 
+export const searchSongVersions = async (
+    conn: duckdb.AsyncDuckDBConnection,
+    term: string,
+    limitInput = 20,
+): Promise<import("./types").SongVersionSearchResponse> => {
+    const trimmed = term.trim();
+    const limit = Math.max(1, Math.min(100, Math.trunc(limitInput)));
+    if (!trimmed) {
+        return { rows: [], total: 0, page: 1, limit, totalPages: 1 };
+    }
+    const escaped = escapeSqlLiteral(trimmed);
+    const normalized = escapeSqlLiteral(trimmed.normalize("NFKC").toLowerCase());
+    const where = `
+      WHERE
+        CAST(sv.versionName AS TEXT) ILIKE '%' || '${escaped}' || '%'
+        OR lower(CAST(sv.versionName AS TEXT)) = '${normalized}'
+    `;
+    const baseQuery = `
+      SELECT
+        CAST(sv.songVersionId AS INTEGER) AS songVersionId,
+        CAST(sv.versionName AS TEXT) AS versionName,
+        CAST(sv.songId AS INTEGER) AS songId,
+        CAST(s.songName AS TEXT) AS songName,
+        CAST(s.artistId AS INTEGER) AS songArtistId,
+        CAST(song_artist.artistName AS TEXT) AS songArtistName,
+        CAST(sv.artistId AS INTEGER) AS artistId,
+        CAST(version_artist.artistName AS TEXT) AS artistName
+      FROM song_versions sv
+      LEFT JOIN songs s
+        ON CAST(s.songId AS INTEGER) = CAST(sv.songId AS INTEGER)
+      LEFT JOIN artist_profiles song_artist
+        ON CAST(song_artist.artistId AS INTEGER) = CAST(s.artistId AS INTEGER)
+      LEFT JOIN artist_profiles version_artist
+        ON CAST(version_artist.artistId AS INTEGER) = CAST(sv.artistId AS INTEGER)
+      ${where}
+    `;
+    const countResult = await conn.query(`
+      SELECT COUNT(*) AS total
+      FROM (${baseQuery}) base
+    `);
+    const total = Number((countResult.toArray()[0] as Record<string, unknown>)?.total ?? 0);
+    const rowsResult = await conn.query(`
+      SELECT *
+      FROM (${baseQuery}) base
+      ORDER BY
+        CASE
+          WHEN lower(CAST(versionName AS TEXT)) = '${normalized}' THEN 0
+          ELSE 1
+        END ASC,
+        length(CAST(versionName AS TEXT)) ASC,
+        songVersionId ASC
+      LIMIT ${limit}
+    `);
+    const rows = (rowsResult.toArray() as Array<Record<string, unknown>>).map((row) => ({
+        songVersionId: toInt(row.songVersionId),
+        versionName: toText(row.versionName),
+        songId:
+            row.songId === null || row.songId === undefined
+                ? null
+                : toInt(row.songId),
+        songName: toText(row.songName),
+        songArtistId:
+            row.songArtistId === null || row.songArtistId === undefined
+                ? null
+                : toInt(row.songArtistId),
+        songArtistName: toText(row.songArtistName),
+        artistId:
+            row.artistId === null || row.artistId === undefined
+                ? null
+                : toInt(row.artistId),
+        artistName: toText(row.artistName),
+    }));
+    return {
+        rows,
+        total,
+        page: 1,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
+};
+
 export const searchSongRanking = async (
     conn: duckdb.AsyncDuckDBConnection,
     request: SongRankingRequest,

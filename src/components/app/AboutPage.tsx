@@ -67,6 +67,22 @@ export function AboutPage() {
                     収集したデータは、検索機能の改善、データ品質の向上、機能開発や運営上の判断材料として利用します。
                 </p>
             </DetailPanel>
+
+            <DetailPanel className="p-4 md:p-6">
+                <h2 className="text-base font-bold text-slate-900">お問い合わせ・誤り報告について</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-700">
+                    送信されたお問い合わせや誤り報告は、内容確認、データ修正、品質改善、運営上の判断材料として利用します。
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                    管理者の指示により、AIエージェントやCodexが内容の整理や修正方針の検討を支援する場合があります。
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                    対応完了後または対応不要と判断した内容は、削除または管理対象外として扱います。
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                    お名前とメールアドレスの入力は任意です。返信が必要な場合のみ入力してください。
+                </p>
+            </DetailPanel>
         </div>
     );
 }

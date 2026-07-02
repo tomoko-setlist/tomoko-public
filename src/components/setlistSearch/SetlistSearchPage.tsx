@@ -26,6 +26,7 @@ export function SetlistSearchPage({
 
     return (
         <HomeSearchContent
+            db={db}
             dbReady={isDbStatusUsable(dbState.status)}
             modeLabels={MODE_LABELS}
             search={search}

@@ -14,6 +14,7 @@ import {
     SetlistIcon,
     VenueIcon,
     LinkTextButton,
+    type TextSizeLevel,
 } from "../ui";
 import { SearchSortableHeader } from "./SearchSortableHeader";
 import { EVENT_TAG_CHIP_CLASS } from "../ui/eventTagClass";
@@ -26,6 +27,7 @@ import type {
     SortBy,
     SortOrder,
 } from "../../lib/setlistSearchDb/types";
+import type { SetlistSubmissionTarget } from "../setlistSubmission/SetlistSubmissionModal";
 
 type SharedProps = {
     searchUnit: SearchUnit;
@@ -35,6 +37,7 @@ type SharedProps = {
     onOpenVenue: (venueId: number) => void;
     onOpenSong: (songId: number) => void;
     onOpenArtist?: (artistId: number) => void;
+    onSubmitSetlist?: (target: SetlistSubmissionTarget) => void;
     getPrefectureNameById?: (id: number | null) => string;
 };
 
@@ -48,6 +51,7 @@ type SearchResultsDesktopTableProps = SharedProps & {
     onHeaderSort: (column?: SortBy) => void;
     visible: boolean;
     groupByEvent?: boolean;
+    density?: TextSizeLevel;
 };
 
 type SearchResultsCardsProps = SharedProps & {
@@ -202,6 +206,18 @@ function isStageCancelled(row: SearchResultRow): boolean {
     return row.cancelled === true;
 }
 
+function toSubmissionTarget(row: SearchResultRow): SetlistSubmissionTarget {
+    return {
+        stageId: row.row_id,
+        eventId: row.event_id,
+        eventName: row.event_name,
+        stageDate: row.date_label,
+        startTime: row.start_time,
+        venueName: row.venue_name,
+        pattern: row.pattern,
+    };
+}
+
 function getCountableStageCount(stages: SearchResultRow[]): number {
     return stages.filter((stage) => !isStageCancelled(stage)).length;
 }
@@ -214,7 +230,7 @@ function getRegisteredSetlistStageCount(stages: SearchResultRow[]): number {
 
 function CancelledStageBadge() {
     return (
-        <span className="inline-flex items-center justify-center border-2 border-red-700 bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white shadow-[1px_1px_0_rgba(127,29,29,0.55)]">
+        <span className="inline-flex min-w-[2.5rem] items-center justify-center whitespace-nowrap border-2 border-red-700 bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white shadow-[1px_1px_0_rgba(127,29,29,0.55)]">
             中止
         </span>
     );
@@ -260,6 +276,7 @@ function StageSetlistCell({
     stageId,
     totalPerformances,
     onOpenStage,
+    onSubmitSetlist,
     cancelled = false,
     emptyLabel = "未登録",
     buttonClassName = "inline-flex h-7 w-7 items-center justify-center rounded-none text-blue-600 hover:bg-blue-50",
@@ -267,6 +284,7 @@ function StageSetlistCell({
     stageId: number;
     totalPerformances: number;
     onOpenStage: (stageId: number) => void;
+    onSubmitSetlist?: () => void;
     cancelled?: boolean;
     emptyLabel?: string;
     buttonClassName?: string;
@@ -276,7 +294,18 @@ function StageSetlistCell({
     }
 
     if (totalPerformances <= 0) {
-        return <span className="text-xs text-slate-400">{emptyLabel}</span>;
+        if (!onSubmitSetlist) {
+            return <span className="text-xs text-slate-400">{emptyLabel}</span>;
+        }
+        return (
+            <button
+                type="button"
+                onClick={onSubmitSetlist}
+                className="inline-flex whitespace-nowrap rounded-none border border-gray-800 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-100"
+            >
+                セトリ投稿
+            </button>
+        );
     }
 
     return <SetlistOpenButton stageId={stageId} onOpenStage={onOpenStage} buttonClassName={buttonClassName} />;
@@ -322,9 +351,11 @@ export function SearchResultsDesktopTable({
     onOpenVenue,
     onOpenSong,
     onOpenArtist,
+    onSubmitSetlist,
     getPrefectureNameById,
     visible,
     groupByEvent = false,
+    density = "standard",
 }: SearchResultsDesktopTableProps) {
     const stageGroups = groupByEvent ? groupStageRowsByEvent(result.rows) : [];
     const multiStageGroupIds = stageGroups
@@ -379,10 +410,18 @@ export function SearchResultsDesktopTable({
         }
         expandAllGroups();
     };
+    const tableTextClass = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-sm",
+        large: "text-base",
+        xlarge: "text-lg",
+    }[density];
 
     return (
         <div className={visible ? "hidden overflow-x-auto md:block" : "hidden"}>
-            <table className="w-full border-collapse text-sm">
+            <table className={`w-full border-collapse ${tableTextClass}`}>
                 <thead className="bg-red-600">
                     <tr>
                         {tableHeaders.map((header, index) => {
@@ -492,6 +531,9 @@ export function SearchResultsDesktopTable({
                                                   totalPerformances={stageRow.total_performances}
                                                   onOpenStage={onOpenStage}
                                                   cancelled={isStageCancelled(stageRow)}
+                                                  onSubmitSetlist={() =>
+                                                      onSubmitSetlist?.(toSubmissionTarget(stageRow))
+                                                  }
                                               />
                                           </td>
                                           <td className="px-3 py-3">
@@ -614,6 +656,9 @@ export function SearchResultsDesktopTable({
                                                   totalPerformances={stageRow.total_performances}
                                                   onOpenStage={onOpenStage}
                                                   cancelled={isStageCancelled(stageRow)}
+                                                  onSubmitSetlist={() =>
+                                                      onSubmitSetlist?.(toSubmissionTarget(stageRow))
+                                                  }
                                               />
                                           </td>
                                           <td className="px-3 py-3">
@@ -671,6 +716,9 @@ export function SearchResultsDesktopTable({
                                                   totalPerformances={row.total_performances}
                                                   onOpenStage={onOpenStage}
                                                   cancelled={isStageCancelled(row)}
+                                                  onSubmitSetlist={() =>
+                                                      onSubmitSetlist?.(toSubmissionTarget(row))
+                                                  }
                                               />
                                           </td>
                                           <td className="px-3 py-3">
@@ -771,6 +819,7 @@ export function SearchResultsCards({
     onOpenVenue,
     onOpenSong,
     onOpenArtist,
+    onSubmitSetlist,
     getPrefectureNameById,
     visible,
     groupByEvent = false,
@@ -933,6 +982,11 @@ export function SearchResultsCards({
                                                                   }
                                                                   onOpenStage={onOpenStage}
                                                                   cancelled={isStageCancelled(stageRow)}
+                                                                  onSubmitSetlist={() =>
+                                                                      onSubmitSetlist?.(
+                                                                          toSubmissionTarget(stageRow),
+                                                                      )
+                                                                  }
                                                                   emptyLabel="-"
                                                                   buttonClassName="inline-flex h-6 w-6 items-center justify-center rounded-none text-blue-600 hover:bg-blue-50"
                                                               />
@@ -984,17 +1038,30 @@ export function SearchResultsCards({
                             </div>
                             <p className="flex items-center gap-2 text-xs text-slate-600 md:text-sm">
                                 <CalendarIcon className="h-4 w-4 shrink-0 text-slate-500" />
-                                <ResultLinkButton
-                                    onClick={() => onOpenStage(row.row_id)}
-                                    className="text-blue-600"
-                                >
-                                    {formatDateYmd(row.date_label)}
-                                </ResultLinkButton>
+                                {row.total_performances > 0 ? (
+                                    <ResultLinkButton
+                                        onClick={() => onOpenStage(row.row_id)}
+                                        className="text-blue-600"
+                                    >
+                                        {formatDateYmd(row.date_label)}
+                                    </ResultLinkButton>
+                                ) : (
+                                    <span>{formatDateYmd(row.date_label)}</span>
+                                )}
                                 {row.start_time ? ` | ${formatTimeHm(row.start_time)}` : ""}
                                 <span className="text-xs text-gray-500">
                                     ({row.total_performances}曲)
                                 </span>
                             </p>
+                            {row.total_performances <= 0 && !isStageCancelled(row) ? (
+                                <button
+                                    type="button"
+                                    onClick={() => onSubmitSetlist?.(toSubmissionTarget(row))}
+                                    className="inline-flex w-full items-center justify-center rounded-none border-2 border-gray-800 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 md:w-auto"
+                                >
+                                    セトリを投稿
+                                </button>
+                            ) : null}
                             {formatStagePattern(row) !== "-" ? (
                                 <p className="flex items-center gap-2 text-xs text-slate-600 md:text-sm">
                                     <span className="shrink-0 text-[10px] font-semibold text-slate-500">

@@ -13,6 +13,7 @@ type SearchSidebarProps = {
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
+    isArticles?: boolean;
     isReleases: boolean;
     announcementUnreadCount?: number;
     dbStatus?: "loading" | "coreReady" | "detailReady" | "ready" | "error";
@@ -21,6 +22,7 @@ type SearchSidebarProps = {
     onOpenSongRanking: () => void;
     onOpenMemberSearch: () => void;
     onOpenKrn: () => void;
+    onOpenArticles: () => void;
     onOpenAbout: () => void;
     onOpenReleases: () => void;
     onRefreshDb?: () => void;
@@ -34,6 +36,7 @@ export function SearchSidebar({
     isMemberSearch,
     isKrn,
     isAbout,
+    isArticles = false,
     isReleases,
     announcementUnreadCount = 0,
     dbStatus = "ready",
@@ -42,6 +45,7 @@ export function SearchSidebar({
     onOpenSongRanking,
     onOpenMemberSearch,
     onOpenKrn,
+    onOpenArticles,
     onOpenAbout,
     onOpenReleases,
     onRefreshDb,
@@ -58,6 +62,7 @@ export function SearchSidebar({
         isMemberSearch,
         isKrn,
         isAbout,
+        isArticles,
         isReleases,
     };
     const navActions: SearchNavActionMap = {
@@ -66,6 +71,7 @@ export function SearchSidebar({
         ranking: onOpenSongRanking,
         member: onOpenMemberSearch,
         krn: onOpenKrn,
+        articles: onOpenArticles,
         about: onOpenAbout,
         releases: onOpenReleases,
     };

@@ -2,10 +2,12 @@ export type AppRoute =
   | { name: "home" }
   | { name: "krn" }
   | { name: "about" }
+  | { name: "articles" }
   | { name: "releases" }
   | { name: "song-search" }
   | { name: "song-ranking" }
   | { name: "member-search" }
+  | { name: "article"; slug: string }
   | { name: "release"; id: number }
   | { name: "event"; id: number }
   | { name: "stage"; id: number }
@@ -24,8 +26,28 @@ const parseId = (value: string | undefined): number | null => {
   return Math.floor(id)
 }
 
-const parseNamedRoute = (name: string | undefined, idRaw?: string): AppRoute | null => {
+const parseSlug = (value: string | undefined): string | null => {
+  if (!value) return null
+  let decoded = ""
+  try {
+    decoded = decodeURIComponent(value).trim()
+  } catch {
+    return null
+  }
+  if (!/^[a-z0-9][a-z0-9-]*$/i.test(decoded)) return null
+  return decoded
+}
+
+const parseNamedRoute = (name: string | undefined, idRaw?: string, slugRaw?: string): AppRoute | null => {
   if (!name) return null
+  if (name === "article") {
+    const slug = parseSlug(slugRaw ?? idRaw)
+    return slug ? { name: "article", slug } : null
+  }
+  if (name === "articles") {
+    const slug = parseSlug(idRaw ?? slugRaw)
+    return slug ? { name: "article", slug } : { name: "articles" }
+  }
   if (name === "song-search") return { name: "song-search" }
   if (name === "song-ranking") return { name: "song-ranking" }
   if (name === "krn") return { name: "krn" }
@@ -57,7 +79,8 @@ export const parseQueryRoute = (search: string): AppRoute | null => {
   const name = params.get("route")
   if (!name) return null
   const id = params.get("id") ?? undefined
-  return parseNamedRoute(name, id)
+  const slug = params.get("slug") ?? undefined
+  return parseNamedRoute(name, id, slug)
 }
 
 export const parseLegacyHashLocation = (
@@ -97,14 +120,17 @@ export const buildPathRoute = (route: AppRoute): string => {
   if (route.name === "home") return "/"
   if (route.name === "krn") return "/krn"
   if (route.name === "about") return "/about"
+  if (route.name === "articles") return "/articles"
   if (route.name === "releases") return "/releases"
   if (route.name === "song-search") return "/song-search"
   if (route.name === "song-ranking") return "/song-ranking"
   if (route.name === "member-search") return "/member-search"
+  if (route.name === "article") return `/articles/${encodeURIComponent(route.slug)}`
   return `/${route.name}/${route.id}`
 }
 
 export const buildRouteKey = (route: AppRoute): string => {
   if ("id" in route) return `${route.name}:${route.id}`
+  if ("slug" in route) return `${route.name}:${route.slug}`
   return route.name
 }

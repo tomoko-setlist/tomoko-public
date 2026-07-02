@@ -4,6 +4,10 @@ export type ReportIssuePayload = {
     pageTitle: string;
     routeName: string;
     routeId: number | null;
+    reportType?: "correction" | "missing_info" | "request" | "other";
+    contactName?: string;
+    contactEmail?: string;
+    sourceContext?: string;
 };
 
 export async function submitIssueReport(payload: ReportIssuePayload): Promise<void> {
@@ -28,4 +32,3 @@ export async function submitIssueReport(payload: ReportIssuePayload): Promise<vo
         throw new Error(message);
     }
 }
-

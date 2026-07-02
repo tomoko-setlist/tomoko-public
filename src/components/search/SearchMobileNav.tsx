@@ -18,6 +18,7 @@ type SearchMobileNavProps = {
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
+    isArticles?: boolean;
     isReleases: boolean;
     announcementUnreadCount?: number;
     dbStatus?: "loading" | "coreReady" | "detailReady" | "ready" | "error";
@@ -28,6 +29,7 @@ type SearchMobileNavProps = {
     onOpenSongRanking: () => void;
     onOpenMemberSearch: () => void;
     onOpenKrn: () => void;
+    onOpenArticles: () => void;
     onOpenAbout: () => void;
     onOpenReleases: () => void;
     onRefreshDb?: () => void;
@@ -40,6 +42,7 @@ export function SearchMobileNav({
     isMemberSearch,
     isKrn,
     isAbout,
+    isArticles = false,
     isReleases,
     announcementUnreadCount = 0,
     dbStatus = "ready",
@@ -50,6 +53,7 @@ export function SearchMobileNav({
     onOpenSongRanking,
     onOpenMemberSearch,
     onOpenKrn,
+    onOpenArticles,
     onOpenAbout,
     onOpenReleases,
     onRefreshDb,
@@ -64,6 +68,7 @@ export function SearchMobileNav({
         isMemberSearch,
         isKrn,
         isAbout,
+        isArticles,
         isReleases,
     };
     const navActions: SearchNavActionMap = {
@@ -72,6 +77,7 @@ export function SearchMobileNav({
         ranking: onOpenSongRanking,
         member: onOpenMemberSearch,
         krn: onOpenKrn,
+        articles: onOpenArticles,
         about: onOpenAbout,
         releases: onOpenReleases,
     };

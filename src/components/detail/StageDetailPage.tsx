@@ -10,6 +10,10 @@ import {
 import { useStageDetail } from "./hooks/useStageDetail";
 import { PerformerList } from "./PerformerList";
 import { formatDateYmd, formatTimeHm, parseTags } from "../../lib/uiFormat";
+import {
+    SetlistSubmissionModal,
+    type SetlistSubmissionTarget,
+} from "../setlistSubmission/SetlistSubmissionModal";
 import { CalendarIcon, EyeIcon, MeatballIcon, TableIcon, UsersIcon } from "../ui";
 import { EVENT_TAG_CHIP_CLASS } from "../ui/eventTagClass";
 
@@ -101,6 +105,8 @@ export function StageDetailPage({
     const [showArtist, setShowArtist] = useState(initialViewPrefs.showArtist);
     const [showRemarks, setShowRemarks] = useState(initialViewPrefs.showRemarks);
     const [isOptionMenuOpen, setIsOptionMenuOpen] = useState(false);
+    const [submissionTarget, setSubmissionTarget] =
+        useState<SetlistSubmissionTarget | null>(null);
     const optionMenuRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -532,7 +538,37 @@ export function StageDetailPage({
                     </>
                 )}
             </DetailPanel>
-            ) : null}
+            ) : (
+                <DetailPanel className="p-4">
+                    <h2 className="text-base font-semibold text-slate-900">セットリスト</h2>
+                    <p className="mt-2 text-sm text-slate-600">
+                        この公演のセットリストは未登録です。
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSubmissionTarget({
+                                stageId: stage.stageId,
+                                eventId: stage.eventId,
+                                eventName: stage.eventName,
+                                stageDate: stage.date,
+                                startTime: stage.startTime,
+                                venueName: stage.venueName,
+                                pattern: stage.pattern,
+                            })
+                        }
+                        className="mt-3 w-full rounded-none border-2 border-gray-800 bg-red-600 px-4 py-3 text-base font-bold text-white sm:w-auto"
+                    >
+                        セトリを投稿
+                    </button>
+                </DetailPanel>
+            )}
+            <SetlistSubmissionModal
+                open={submissionTarget !== null}
+                target={submissionTarget}
+                db={db}
+                onClose={() => setSubmissionTarget(null)}
+            />
         </div>
     );
 }

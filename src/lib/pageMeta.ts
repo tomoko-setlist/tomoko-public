@@ -1,4 +1,5 @@
 import { buildPathRoute, buildRouteKey, type AppRoute } from "./appRoute";
+import { getArticleBySlug } from "../content/articles";
 
 const DEFAULT_SITE_NAME = "ToMoKo";
 const DEFAULT_HOME_TITLE = "ToMoKo - ハロプロセトリ検索システム";
@@ -18,6 +19,8 @@ const resolveRouteLabel = (
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
     if (route.name === "member-search") return "メンバー検索";
+    if (route.name === "articles") return "記事";
+    if (route.name === "article") return getArticleBySlug(route.slug)?.title ?? "記事";
     if (route.name === "about") return "About";
     if (route.name === "releases") return "お知らせ";
     if (route.name === "krn") return "KRN";
@@ -46,6 +49,10 @@ const resolveRouteDescription = (
     }
     if (route.name === "member-search") {
         return "ハロプロのメンバーをかな・所属状態・プロフィール情報で検索できます。";
+    }
+    if (route.name === "articles") return "記事";
+    if (route.name === "article") {
+        return getArticleBySlug(route.slug)?.summary ?? `${routeLabel} の記事ページです。`;
     }
     if (route.name === "about") return "ToMoKoについて、著作情報と免責事項をまとめています。";
     if (route.name === "releases") return "ToMoKoのデータ登録状況と更新履歴を確認できます。";
@@ -89,6 +96,7 @@ export const buildPageMeta = ({
             route.name === "song-search" ||
             route.name === "song-ranking" ||
             route.name === "member-search" ||
+            route.name === "articles" ||
             route.name === "about" ||
             route.name === "releases" ||
             route.name === "krn"

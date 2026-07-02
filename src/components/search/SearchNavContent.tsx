@@ -1,6 +1,7 @@
 import {
     BarChartHorizontalIcon,
     BellIcon,
+    EditIcon,
     MusicIcon,
     SetlistIcon,
     SparklesIcon,
@@ -15,6 +16,7 @@ export type SearchNavKey =
     | "ranking"
     | "member"
     | "krn"
+    | "articles"
     | "releases"
     | "about";
 
@@ -24,6 +26,7 @@ export type SearchNavState = {
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
+    isArticles?: boolean;
     isReleases: boolean;
 };
 
@@ -85,6 +88,12 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
         description: "セトリ投稿お助けサービス",
         renderIcon: (className) => <SparklesIcon className={className} />,
     },
+    articles: {
+        key: "articles",
+        label: "記事",
+        description: "",
+        renderIcon: (className) => <EditIcon className={className} />,
+    },
     releases: {
         key: "releases",
         label: "お知らせ",
@@ -125,7 +134,7 @@ const BASE_SEARCH_NAV_SECTIONS: SearchNavSection[] = [
     {
         key: "info",
         title: "About・データ",
-        items: ["releases", "about"],
+        items: ["articles", "releases", "about"],
     },
 ];
 
@@ -149,6 +158,7 @@ export function isSearchNavItemActive(
                 !state.isMemberSearch &&
                 !state.isKrn &&
                 !state.isAbout &&
+                !state.isArticles &&
                 !state.isReleases
             );
         case "song":
@@ -159,6 +169,8 @@ export function isSearchNavItemActive(
             return state.isMemberSearch;
         case "krn":
             return state.isKrn;
+        case "articles":
+            return Boolean(state.isArticles);
         case "releases":
             return state.isReleases;
         case "about":

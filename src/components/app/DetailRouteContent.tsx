@@ -2,6 +2,7 @@ import { useCallback, useMemo, type ReactNode } from "react";
 
 import { buildRouteKey, type AppRoute } from "../../lib/appRoute";
 import {
+    buildBreadcrumbRoutes,
     buildRouteTrail,
     getLatestSearchRoute,
     isDetailRoute,
@@ -61,32 +62,9 @@ export function DetailRouteContent({
     const isDetail = isDetailRoute(route);
     const detailTrail = isDetail ? buildRouteTrail(history, route) : [];
     const breadcrumbItems = detailTrail.filter((item) => !item.current);
-    const latestSearchRoute = getLatestSearchRoute(history);
-    const currentBreadcrumbItem =
-        detailTrail.find((item) => item.current) ?? null;
-    const breadcrumbRoutes: Array<{
-        route: AppRoute;
-        current: boolean;
-        fromHistory: boolean;
-    }> = isDetail
-        ? [
-              { route: latestSearchRoute, current: false, fromHistory: false },
-              ...breadcrumbItems.map((item) => ({
-                  route: item.route,
-                  current: false,
-                  fromHistory: true,
-              })),
-              ...(currentBreadcrumbItem
-                  ? [
-                        {
-                            route: currentBreadcrumbItem.route,
-                            current: true,
-                            fromHistory: false,
-                        },
-                    ]
-                  : []),
-          ]
-        : [];
+    const latestSearchRoute =
+        route.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
+    const breadcrumbRoutes = buildBreadcrumbRoutes(history, route);
     const previousBreadcrumbRoute =
         breadcrumbItems.length > 0
             ? breadcrumbItems[breadcrumbItems.length - 1].route
@@ -109,6 +87,7 @@ export function DetailRouteContent({
                 onNavigateCreator={(id) => navigate({ name: "creator", id })}
                 onNavigateAlbum={(id) => navigate({ name: "album", id })}
                 onNavigateRelease={(id) => navigate({ name: "release", id })}
+                onNavigateArticle={(slug) => navigate({ name: "article", slug })}
             />
         );
     }
@@ -129,7 +108,7 @@ export function DetailRouteContent({
         <>
             <nav
                 aria-label="遷移履歴"
-                className="mb-1 px-1 py-0.5 text-xs"
+                className="mb-1 px-1 py-0.5 text-xs md:hidden"
             >
                 <div className="flex flex-wrap items-center gap-1.5">
                     {breadcrumbRoutes.map((item, index) => (
@@ -194,10 +173,11 @@ export function DetailRouteContent({
                 onNavigateCreator={(id) => navigate({ name: "creator", id })}
                 onNavigateAlbum={(id) => navigate({ name: "album", id })}
                 onNavigateRelease={(id) => navigate({ name: "release", id })}
+                onNavigateArticle={(slug) => navigate({ name: "article", slug })}
             />
 
             <footer className="mt-4 border-t-2 border-gray-800 bg-white">
-                <div className="mx-auto flex max-w-[1120px] justify-center px-4 py-3 md:px-6">
+                <div className="flex w-full justify-center px-4 py-3 md:px-6">
                     <button
                         type="button"
                         onClick={handleBottomBack}
@@ -224,5 +204,6 @@ function routeTypeIcon(route: AppRoute): ReactNode {
     if (route.name === "creator") return <EditIcon className="h-4 w-4 shrink-0" />;
     if (route.name === "album") return <AlbumIcon className="h-4 w-4 shrink-0" />;
     if (route.name === "release") return null;
+    if (route.name === "article") return <EditIcon className="h-4 w-4 shrink-0" />;
     return null;
 }

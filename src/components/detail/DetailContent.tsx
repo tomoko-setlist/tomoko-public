@@ -23,6 +23,7 @@ type DetailContentProps = {
     onNavigateCreator: (id: number) => void;
     onNavigateAlbum: (id: number) => void;
     onNavigateRelease: (id: number) => void;
+    onNavigateArticle: (slug: string) => void;
 };
 const LAZY_RETRY_DELAY_MS = 220;
 
@@ -96,6 +97,16 @@ const KrnPage = lazyWithRetry(() =>
         default: module.KrnPage,
     })),
 );
+const ArticlesPage = lazyWithRetry(() =>
+    import("../articles/ArticlesPage").then((module) => ({
+        default: module.ArticlesPage,
+    })),
+);
+const ArticleDetailPage = lazyWithRetry(() =>
+    import("../articles/ArticleDetailPage").then((module) => ({
+        default: module.ArticleDetailPage,
+    })),
+);
 const ArtistDetailPage = lazyWithRetry(() =>
     import("./ArtistDetailPage").then((module) => ({
         default: module.ArtistDetailPage,
@@ -146,6 +157,7 @@ export function DetailContent({
     onNavigateCreator,
     onNavigateAlbum,
     onNavigateRelease,
+    onNavigateArticle,
 }: DetailContentProps) {
     const initialDetailData = useMemo(
         () => getInitialDetailDataForRoute(route),
@@ -159,6 +171,26 @@ export function DetailContent({
 
     if (route.name === "about") {
         return <AboutPage />;
+    }
+
+    if (route.name === "articles" || route.name === "article") {
+        return (
+            <LazyRouteErrorBoundary>
+                <Suspense fallback={<DetailLoadingState />}>
+                    {route.name === "articles" ? (
+                        <ArticlesPage
+                            onResolveTitle={onResolveTitle}
+                            onOpenArticle={onNavigateArticle}
+                        />
+                    ) : (
+                        <ArticleDetailPage
+                            slug={route.slug}
+                            onResolveTitle={onResolveTitle}
+                        />
+                    )}
+                </Suspense>
+            </LazyRouteErrorBoundary>
+        );
     }
 
     if (!db) {
@@ -243,6 +275,7 @@ export function DetailContent({
                     db={db}
                     onResolveTitle={onResolveTitle}
                     onOpenRelease={onNavigateRelease}
+                    onOpenArticle={onNavigateArticle}
                 />
             ) : route.name === "krn" ? (
                 <KrnPage db={db} />

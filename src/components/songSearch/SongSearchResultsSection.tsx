@@ -1,8 +1,11 @@
+import { useState } from "react";
+
 import { normalizePageSize } from "../../lib/constants/searchDefaults";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { SearchPagination } from "../search/SearchPagination";
 import { SearchResultsHeaderControls } from "../search/SearchResultsHeaderControls";
 import { SearchSortableHeader } from "../search/SearchSortableHeader";
+import { normalizeTextSizeLevel, type TextSizeLevel } from "../ui";
 
 import type { SongSearchResponse } from "../../lib/setlistSearchDb/types";
 
@@ -64,6 +67,15 @@ export function SongSearchResultsSection({
     setPageSize,
     setShowAdvanced,
 }: SongSearchResultsSectionProps) {
+    const [textSize, setTextSize] = useState<TextSizeLevel>(() => {
+        try {
+            return normalizeTextSizeLevel(
+                sessionStorage.getItem("tomoko-song-search-text-size"),
+            );
+        } catch {
+            return "standard";
+        }
+    });
     const sortOptions: Array<{ value: SongSortBy; label: string }> = [
         { value: "song", label: "楽曲名" },
         { value: "artist", label: "アーティスト" },
@@ -121,6 +133,38 @@ export function SongSearchResultsSection({
         }
         return name || "-";
     };
+    const handleTextSizeChange = (next: TextSizeLevel) => {
+        setTextSize(next);
+        try {
+            sessionStorage.setItem("tomoko-song-search-text-size", next);
+        } catch {
+            // no-op
+        }
+    };
+    const textSizeClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-sm",
+        large: "text-base",
+        xlarge: "text-lg",
+    };
+    const songTitleClass: Record<TextSizeLevel, string> = {
+        tiny: "text-xs",
+        compact: "text-sm",
+        small: "text-[15px]",
+        standard: "text-[17px]",
+        large: "text-lg",
+        xlarge: "text-xl",
+    };
+    const artistTextClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-[12px]",
+        large: "text-sm",
+        xlarge: "text-base",
+    };
 
     return (
         <section className="rounded-none border-2 border-gray-800 bg-white p-3 shadow-[3px_3px_0px_0px_rgba(31,41,55,0.8)] md:p-4">
@@ -139,6 +183,8 @@ export function SongSearchResultsSection({
                 }
                 onViewModeChange={setViewMode}
                 showDesktopSortWhenCard={true}
+                tableDensity={textSize}
+                onTableDensityChange={handleTextSizeChange}
             />
 
             {dateRangeError ? (
@@ -153,7 +199,7 @@ export function SongSearchResultsSection({
                             viewMode === "table"
                                 ? "divide-y divide-slate-300 border-y border-slate-300 md:hidden"
                                 : "divide-y divide-slate-300 border-y border-slate-300 md:grid md:grid-cols-2 md:gap-3 md:divide-y-0 md:border-y-0"
-                        }`}
+                        } ${textSizeClass[textSize]}`}
                     >
                         {result.rows.map((row) => (
                             <article
@@ -164,7 +210,7 @@ export function SongSearchResultsSection({
                                     <button
                                         type="button"
                                         onClick={() => onOpenSong(row.songId)}
-                                        className="text-left text-[17px] font-bold leading-tight text-blue-700 hover:underline"
+                                        className={`text-left font-bold leading-tight text-blue-700 hover:underline ${songTitleClass[textSize]}`}
                                     >
                                         {row.songName}
                                     </button>
@@ -172,13 +218,13 @@ export function SongSearchResultsSection({
                                     <button
                                         type="button"
                                         onClick={() => onOpenArtist(row.artistId)}
-                                        className="text-left text-[12px] font-semibold text-blue-700 hover:underline"
+                                        className={`text-left font-semibold text-blue-700 hover:underline ${artistTextClass[textSize]}`}
                                     >
                                         {row.artistName}
                                     </button>
                                 </div>
 
-                                <div className="space-y-1 text-[12px] leading-4 text-slate-800 md:text-sm">
+                                <div className="space-y-1 leading-4 text-slate-800">
                                     <div className="flex flex-wrap items-start gap-x-3 gap-y-0.5">
                                         <span className="inline-flex items-center gap-1">
                                             <span className="font-semibold text-slate-700">作詞</span>
@@ -194,15 +240,15 @@ export function SongSearchResultsSection({
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap items-start gap-x-4 gap-y-1 border-t border-dashed border-slate-300 bg-slate-50 px-2 py-1">
-                                        <span className="whitespace-nowrap text-[11px] md:text-xs">
+                                            <span className="whitespace-nowrap">
                                             <span className="mr-1 font-semibold text-slate-700">発売日</span>
                                             {formatDateYmd(row.releaseDate)}
                                         </span>
-                                        <span className="whitespace-nowrap text-[11px] md:text-xs">
+                                        <span className="whitespace-nowrap">
                                             <span className="mr-1 font-semibold text-slate-700">最終歌唱日</span>
                                             {formatDateYmd(row.lastPerformedDate)}
                                         </span>
-                                        <span className="min-w-0 text-[11px] md:text-xs">
+                                        <span className="min-w-0">
                                             <span className="mr-1 font-semibold text-slate-700">アルバム</span>
                                             {renderAlbumLinks(row)}
                                         </span>
@@ -215,7 +261,7 @@ export function SongSearchResultsSection({
                     <div
                         className={`${viewMode === "table" ? "hidden overflow-x-auto md:block" : "hidden"}`}
                     >
-                        <table className="w-full text-sm">
+                        <table className={`w-full ${textSizeClass[textSize]}`}>
                             <thead className="border-b border-slate-200 bg-red-600 text-xs text-white">
                                 <tr>
                                     <SearchSortableHeader

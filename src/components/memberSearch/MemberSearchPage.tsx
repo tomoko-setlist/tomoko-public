@@ -41,7 +41,7 @@ import { SearchDetailActions } from "../search/SearchDetailActions";
 import { SearchPagination } from "../search/SearchPagination";
 import { SearchResultsHeaderControls } from "../search/SearchResultsHeaderControls";
 import { SearchSortableHeader } from "../search/SearchSortableHeader";
-import { ChevronUpIcon } from "../ui";
+import { ChevronUpIcon, normalizeTextSizeLevel, type TextSizeLevel } from "../ui";
 
 import type {
     MemberSearchRequest,
@@ -89,6 +89,15 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
     const [sortBy, setSortBy] = useState<SortBy>("kana");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [viewMode, setViewMode] = useState<ViewMode>("table");
+    const [textSize, setTextSize] = useState<TextSizeLevel>(() => {
+        try {
+            return normalizeTextSizeLevel(
+                sessionStorage.getItem("tomoko-member-search-text-size"),
+            );
+        } catch {
+            return "standard";
+        }
+    });
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -557,6 +566,22 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
         { value: "name", label: "名前" },
         { value: "kana", label: "かな" },
     ];
+    const handleTextSizeChange = (next: TextSizeLevel) => {
+        setTextSize(next);
+        try {
+            sessionStorage.setItem("tomoko-member-search-text-size", next);
+        } catch {
+            // no-op
+        }
+    };
+    const textSizeClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-sm",
+        large: "text-base",
+        xlarge: "text-lg",
+    };
     const showEditFloating = useScrollVisibility(
         formRef,
         result.total > 0,
@@ -784,6 +809,8 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
                     }
                     onViewModeChange={(mode) => setViewMode(mode)}
                     showDesktopSortWhenCard={true}
+                    tableDensity={textSize}
+                    onTableDensityChange={handleTextSizeChange}
                 />
 
                 {error ? (
@@ -804,6 +831,7 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
                                     groupNameMap={groupNameMap}
                                     onOpenMember={onOpenMember}
                                     onOpenGroup={onOpenGroup}
+                                    textSize={textSize}
                                 />
                             ))}
                         </div>
@@ -815,7 +843,7 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
                                     : "hidden"
                             }`}
                         >
-                            <table className="w-full text-sm">
+                            <table className={`w-full ${textSizeClass[textSize]}`}>
                                 <thead className="bg-red-600">
                                     <tr>
                                         <SearchSortableHeader
@@ -979,6 +1007,7 @@ type MemberSearchResultCardProps = {
     groupNameMap: Map<string, number>;
     onOpenMember: (personId: number) => void;
     onOpenGroup: (groupId: number) => void;
+    textSize: TextSizeLevel;
 };
 
 function MemberSearchResultCard({
@@ -986,10 +1015,27 @@ function MemberSearchResultCard({
     groupNameMap,
     onOpenMember,
     onOpenGroup,
+    textSize,
 }: MemberSearchResultCardProps) {
     const hasActiveGroups = hasMemberGroupContent(row, "active");
     const hasFormerGroups = hasMemberGroupContent(row, "former");
     const memberStatusLabel = getMemberStatusLabel(row.memberStatus);
+    const titleClass: Record<TextSizeLevel, string> = {
+        tiny: "text-xs",
+        compact: "text-sm",
+        small: "text-[15px]",
+        standard: "text-base md:text-sm",
+        large: "text-lg md:text-base",
+        xlarge: "text-xl md:text-lg",
+    };
+    const bodyClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-xs",
+        large: "text-sm",
+        xlarge: "text-base",
+    };
 
     return (
         <article className="border-2 border-slate-700 bg-white px-3 py-2 shadow-[3px_3px_0_0_#475569] md:!border-slate-300 md:shadow-none">
@@ -997,7 +1043,7 @@ function MemberSearchResultCard({
                 <button
                     type="button"
                     onClick={() => onOpenMember(row.personId)}
-                    className="inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 text-left text-base font-semibold text-blue-700 hover:underline md:text-sm"
+                    className={`inline-flex max-w-full flex-wrap items-baseline gap-x-1.5 text-left font-semibold text-blue-700 hover:underline ${titleClass[textSize]}`}
                 >
                     <span>{row.personName}</span>
                     {row.nameKana ? (
@@ -1011,7 +1057,7 @@ function MemberSearchResultCard({
                 ) : null}
             </div>
 
-            <p className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs leading-5 text-slate-600">
+            <p className={`mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 leading-5 text-slate-600 ${bodyClass[textSize]}`}>
                 <span className="inline-flex shrink-0 items-baseline whitespace-nowrap">
                     <span className="font-semibold text-slate-800">{formatDateYmd(row.birthday)}</span> 生
                 </span>
@@ -1027,7 +1073,7 @@ function MemberSearchResultCard({
             </p>
 
             {hasActiveGroups ? (
-                <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 text-xs leading-5 text-slate-700">
+                <div className={`mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 leading-5 text-slate-700 ${bodyClass[textSize]}`}>
                     <span className="shrink-0 whitespace-nowrap font-semibold text-slate-600">所属:</span>
                     <div className="min-w-0 flex-1">
                         {renderCategorizedGroupLinks(
@@ -1042,7 +1088,7 @@ function MemberSearchResultCard({
             ) : null}
 
             {hasFormerGroups ? (
-                <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 text-xs leading-5 text-slate-500">
+                <div className={`mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 leading-5 text-slate-500 ${bodyClass[textSize]}`}>
                     <span className="shrink-0 whitespace-nowrap font-semibold text-slate-500">ex:</span>
                     <div className="min-w-0 flex-1">
                         {renderCategorizedGroupLinks(

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import {
     updateFieldSearchMethod,
@@ -9,10 +9,16 @@ import {
     SearchFormPanel,
     SearchResultsTable,
 } from "../search";
+import {
+    SetlistSubmissionModal,
+    type SetlistSubmissionTarget,
+} from "../setlistSubmission/SetlistSubmissionModal";
 
 import type { AppRoute } from "../../lib/appRoute";
+import type { SetlistSearchDb } from "../../lib/setlistSearchDb/types";
 
 type HomeSearchContentProps = {
+    db?: SetlistSearchDb | null;
     dbReady: boolean;
     modeLabels: Record<"stage" | "setlist", string>;
     search: UseSearchPageState;
@@ -20,12 +26,15 @@ type HomeSearchContentProps = {
 };
 
 export function HomeSearchContent({
+    db = null,
     dbReady,
     modeLabels,
     search,
     navigate,
 }: HomeSearchContentProps) {
     const formRef = useRef<HTMLDivElement>(null);
+    const [submissionTarget, setSubmissionTarget] =
+        useState<SetlistSubmissionTarget | null>(null);
 
     return (
         <>
@@ -256,6 +265,7 @@ export function HomeSearchContent({
                 onOpenVenue={(id) => navigate({ name: "venue", id })}
                 onOpenSong={(id) => navigate({ name: "song", id })}
                 onOpenArtist={(id) => navigate({ name: "artist", id })}
+                onSubmitSetlist={setSubmissionTarget}
                 getPrefectureNameById={(id) => {
                     if (id === null || id === undefined) return "-";
                     const hit = search.prefectureOptions.find(
@@ -286,6 +296,12 @@ export function HomeSearchContent({
                     window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 label="検索条件を編集"
+            />
+            <SetlistSubmissionModal
+                open={submissionTarget !== null}
+                target={submissionTarget}
+                db={db}
+                onClose={() => setSubmissionTarget(null)}
             />
         </>
     );

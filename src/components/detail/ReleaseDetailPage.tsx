@@ -9,8 +9,8 @@ import {
     DetailPanel,
     DetailShareLinkButton,
 } from "./DetailUi";
-import { ReleaseDbChangeSummary } from "./ReleaseDbChangeSummary";
 import { useReleaseDetail } from "./hooks/useReleaseDetail";
+import { ReleaseDbChangeSummary } from "./ReleaseDbChangeSummary";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { toSafeExternalUrl } from "../../shared/url/externalUrl";
 import { EVENT_TAG_CHIP_CLASS } from "../ui/eventTagClass";

@@ -1,4 +1,5 @@
 import { SearchViewModeToggle } from "./SearchViewModeToggle";
+import { TextSizeControl, type TextSizeLevel } from "../ui";
 
 type SortOptionGroup = {
     value: string;
@@ -21,6 +22,8 @@ type SearchResultsHeaderControlsProps = {
     onViewModeChange: (mode: "table" | "card") => void;
     showDesktopSortWhenCard?: boolean;
     showViewModeToggle?: boolean;
+    tableDensity?: TextSizeLevel;
+    onTableDensityChange?: (density: TextSizeLevel) => void;
 };
 
 export function SearchResultsHeaderControls({
@@ -36,9 +39,15 @@ export function SearchResultsHeaderControls({
     onViewModeChange,
     showDesktopSortWhenCard = true,
     showViewModeToggle = true,
+    tableDensity = "standard",
+    onTableDensityChange,
 }: SearchResultsHeaderControlsProps) {
     const shouldShowDesktopSort = showDesktopSortWhenCard ? viewMode === "card" : true;
     const hasStageEventCounts = Boolean(stageEventCounts);
+    const sortSelectClass =
+        "h-9 min-w-[8.5rem] rounded-md border border-slate-300 bg-white px-3 text-xs font-bold text-slate-800 shadow-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-100";
+    const sortButtonClass =
+        "inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-xs font-black text-slate-700 shadow-sm transition hover:border-red-300 hover:text-red-700";
 
     return (
         <>
@@ -65,12 +74,19 @@ export function SearchResultsHeaderControls({
                     )}
                 </h3>
                 <div className="ml-auto flex items-center gap-2">
+                    {onTableDensityChange ? (
+                        <TextSizeControl
+                            value={tableDensity}
+                            onChange={onTableDensityChange}
+                            targetLabel="一覧の文字"
+                        />
+                    ) : null}
                     {shouldShowDesktopSort ? (
                         <div className="flex items-center gap-1.5">
                             <select
                                 value={sortBy}
                                 onChange={(event) => onSortByChange(event.target.value)}
-                                className="rounded-none border-2 border-gray-800 px-2 py-1 text-xs"
+                                className={sortSelectClass}
                                 title="ソート項目"
                                 aria-label="ソート項目"
                             >
@@ -85,7 +101,7 @@ export function SearchResultsHeaderControls({
                                 onClick={() =>
                                     onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")
                                 }
-                                className="rounded-none border-2 border-gray-800 px-2 py-1 text-xs"
+                                className={sortButtonClass}
                                 title="昇順/降順を切り替え"
                                 aria-label="昇順/降順を切り替え"
                             >
@@ -127,10 +143,18 @@ export function SearchResultsHeaderControls({
                         )}
                     </h3>
                     <div className="flex items-center gap-1.5">
+                        {onTableDensityChange ? (
+                            <TextSizeControl
+                                value={tableDensity}
+                                onChange={onTableDensityChange}
+                                targetLabel="一覧の文字"
+                                className="scale-90"
+                            />
+                        ) : null}
                         <select
                             value={sortBy}
                             onChange={(event) => onSortByChange(event.target.value)}
-                            className="rounded-none border-2 border-gray-800 px-2 py-1 text-xs"
+                            className="h-8 max-w-[9.5rem] rounded-sm border border-slate-300 bg-white px-2 text-[11px] font-bold text-slate-800 shadow-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
                             title="ソート項目"
                             aria-label="ソート項目"
                         >
@@ -145,7 +169,7 @@ export function SearchResultsHeaderControls({
                             onClick={() =>
                                 onSortOrderChange(sortOrder === "asc" ? "desc" : "asc")
                             }
-                            className="rounded-none border-2 border-gray-800 px-2 py-1 text-xs"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-slate-300 bg-white text-[11px] font-black text-slate-700 shadow-sm"
                             title="昇順/降順を切り替え"
                             aria-label="昇順/降順を切り替え"
                         >

@@ -88,6 +88,37 @@ export const ShareIcon = ({ className = 'w-5 h-5' }: { className?: string }) => 
   </svg>
 )
 
+export const MailIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M4 6h16v12H4z" />
+    <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="m4 7 8 6 8-6" />
+  </svg>
+)
+
+export const GithubIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M12 2C6.48 2 2 6.58 2 12.24c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49v-1.72c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.55-1.14-4.55-5.05 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.38 9.38 0 0 1 12 5.99c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.04.36.32.68.94.68 1.9v2.82c0 .27.18.59.69.49A10.15 10.15 0 0 0 22 12.24C22 6.58 17.52 2 12 2Z"
+    />
+  </svg>
+)
+
+export const ExternalLinkIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M14 5h5v5" />
+    <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="m19 5-9 9" />
+    <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M19 14v5H5V5h5" />
+  </svg>
+)
+
+export const TwitterIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.28 4.28 0 0 0 1.88-2.36 8.55 8.55 0 0 1-2.72 1.04 4.27 4.27 0 0 0-7.39 2.92c0 .33.04.65.11.96A12.12 12.12 0 0 1 3.08 4.8a4.28 4.28 0 0 0 1.32 5.7 4.24 4.24 0 0 1-1.94-.54v.05a4.28 4.28 0 0 0 3.43 4.19 4.28 4.28 0 0 1-1.93.07 4.28 4.28 0 0 0 3.99 2.97A8.57 8.57 0 0 1 2.64 19.07c-.35 0-.69-.02-1.03-.06A12.1 12.1 0 0 0 8.17 21c7.87 0 12.17-6.52 12.17-12.17v-.55A8.7 8.7 0 0 0 22.46 6Z" />
+  </svg>
+)
+
 export const SearchIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -401,5 +432,13 @@ export const StartsWithIcon = ({ className = 'w-4 h-4' }: { className?: string }
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6v12" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10l4 2-4 2" />
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 12h8" />
+  </svg>
+)
+
+export const FireIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 1c-2 3-4 6-5 9-1.5 4.5-.2 8.5 2.2 10.5 2.8 2.2 7 1.5 9-1.5 2-3 2-7 0-10.5C16.5 5 14 2 12 1z" />
+    <path d="M12 5c-1.5 2-2.5 5-1.5 7.5 1 2.5 3 4 5 4s3-1.5 3.5-3.5c.5-2.5-.5-5.5-2-7.5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    <ellipse cx="13" cy="14" rx="1.2" ry="2" opacity="0.7" />
   </svg>
 )

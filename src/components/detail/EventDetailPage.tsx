@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     DetailErrorState,
@@ -11,6 +11,10 @@ import {
 import { useEventDetail } from "./hooks/useEventDetail";
 import { PerformerList } from "./PerformerList";
 import { formatDateRangeYmd, formatDateYmd, formatTimeHm, parseTags } from "../../lib/uiFormat";
+import {
+    SetlistSubmissionModal,
+    type SetlistSubmissionTarget,
+} from "../setlistSubmission/SetlistSubmissionModal";
 import { SetlistIcon, UsersIcon } from "../ui";
 
 import type { SetlistSearchDb, StageDetail } from "../../lib/setlistSearchDb/types";
@@ -38,6 +42,8 @@ export function EventDetailPage({
     onOpenGroup,
 }: EventDetailPageProps) {
     const { loading, error, event, stages, performers } = useEventDetail(db, eventId);
+    const [submissionTarget, setSubmissionTarget] =
+        useState<SetlistSubmissionTarget | null>(null);
 
     useEffect(() => {
         if (event?.eventName) {
@@ -175,7 +181,23 @@ export function EventDetailPage({
                                             <SetlistIcon className="h-4 w-4" />
                                         </button>
                                     ) : (
-                                        <span className="text-slate-400">未登録</span>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSubmissionTarget({
+                                                    stageId: stage.stageId,
+                                                    eventId: stage.eventId,
+                                                    eventName: event.eventName,
+                                                    stageDate: stage.date,
+                                                    startTime: stage.startTime,
+                                                    venueName: stage.venueName,
+                                                    pattern: stage.pattern,
+                                                })
+                                            }
+                                            className="inline-flex whitespace-nowrap rounded-none border border-gray-800 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-100"
+                                        >
+                                            セトリ投稿
+                                        </button>
                                     ),
                             },
                             {
@@ -226,11 +248,23 @@ export function EventDetailPage({
                                                         <SetlistIcon className="block h-4 w-4" />
                                                     </button>
                                                 ) : (
-                                                    <span
-                                                        className="h-1.5 w-1.5 rounded-full bg-slate-400"
-                                                        title="セトリ未登録"
-                                                        aria-label="セトリ未登録"
-                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setSubmissionTarget({
+                                                                stageId: stage.stageId,
+                                                                eventId: stage.eventId,
+                                                                eventName: event.eventName,
+                                                                stageDate: stage.date,
+                                                                startTime: stage.startTime,
+                                                                venueName: stage.venueName,
+                                                                pattern: stage.pattern,
+                                                            })
+                                                        }
+                                                        className="inline-flex rounded-none border border-gray-800 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-800"
+                                                    >
+                                                        投稿
+                                                    </button>
                                                 )}
                                             </div>
                                             <p className="col-start-2 truncate text-xs text-slate-900">
@@ -314,6 +348,12 @@ export function EventDetailPage({
                 </DetailPanel>
             ) : null}
 
+            <SetlistSubmissionModal
+                open={submissionTarget !== null}
+                target={submissionTarget}
+                db={db}
+                onClose={() => setSubmissionTarget(null)}
+            />
         </div>
     );
 }

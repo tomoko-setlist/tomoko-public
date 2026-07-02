@@ -180,7 +180,11 @@ export function DetailShareLinkButton({
     const [copied, setCopied] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
+    const [reportType, setReportType] =
+        useState<"correction" | "missing_info" | "request" | "other">("correction");
     const [reportMessage, setReportMessage] = useState("");
+    const [reportContactName, setReportContactName] = useState("");
+    const [reportContactEmail, setReportContactEmail] = useState("");
     const [reportError, setReportError] = useState("");
     const [reportSending, setReportSending] = useState(false);
     const [reportToastOpen, setReportToastOpen] = useState(false);
@@ -262,7 +266,10 @@ export function DetailShareLinkButton({
 
     const handleCloseReport = () => {
         setReportOpen(false);
+        setReportType("correction");
         setReportMessage("");
+        setReportContactName("");
+        setReportContactEmail("");
         setReportError("");
         setReportSending(false);
     };
@@ -276,6 +283,16 @@ export function DetailShareLinkButton({
         }
         if (message.length > 1000) {
             setReportError("内容は1000文字以内で入力してください。");
+            return;
+        }
+        const contactName = reportContactName.trim();
+        if (contactName.length > 80) {
+            setReportError("お名前は80文字以内で入力してください。");
+            return;
+        }
+        const contactEmail = reportContactEmail.trim();
+        if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+            setReportError("メールアドレスの形式を確認してください。");
             return;
         }
 
@@ -292,11 +309,18 @@ export function DetailShareLinkButton({
                 pageTitle: document.title || "",
                 routeName: route.name,
                 routeId: "id" in route ? route.id : null,
+                reportType,
+                contactName,
+                contactEmail,
+                sourceContext: "detail-report",
             });
             setReportOpen(false);
             setReportError("");
             setReportToastOpen(true);
             setReportMessage("");
+            setReportContactName("");
+            setReportContactEmail("");
+            setReportType("correction");
         } catch (error) {
             setReportError(error instanceof Error ? error.message : String(error));
         } finally {
@@ -366,16 +390,66 @@ export function DetailShareLinkButton({
                             </button>
                         </div>
                         <p className="mb-2 text-xs text-slate-600">
-                            管理者に情報の誤りを報告します。
+                            掲載内容の誤りや不足情報などをお送りください。
                         </p>
+                        <label className="mb-2 block text-xs font-semibold text-slate-700">
+                            種別
+                            <select
+                                value={reportType}
+                                onChange={(event) =>
+                                    setReportType(
+                                        event.target.value as
+                                            | "correction"
+                                            | "missing_info"
+                                            | "request"
+                                            | "other",
+                                    )
+                                }
+                                className="mt-1 w-full rounded-none border-2 border-gray-800 bg-white px-2 py-2 text-sm text-gray-900 focus:outline-none"
+                            >
+                                <option value="correction">誤り</option>
+                                <option value="missing_info">不足情報</option>
+                                <option value="request">要望</option>
+                                <option value="other">その他</option>
+                            </select>
+                        </label>
                         <textarea
                             value={reportMessage}
                             onChange={(event) => setReportMessage(event.target.value)}
                             rows={6}
                             maxLength={1000}
-                            placeholder="例: 〇〇の表記が誤っています。"
+                            placeholder="気づいた点や修正してほしい内容を入力してください。正しい情報が分かる場合はあわせて記載してください。"
                             className="w-full rounded-none border-2 border-gray-800 px-2 py-2 text-sm text-gray-900 focus:outline-none"
                         />
+                        <label className="mt-2 block text-xs font-semibold text-slate-700">
+                            お名前（任意）
+                            <input
+                                type="text"
+                                value={reportContactName}
+                                onChange={(event) =>
+                                    setReportContactName(event.target.value)
+                                }
+                                maxLength={80}
+                                placeholder="例: 山田 太郎"
+                                className="mt-1 w-full rounded-none border-2 border-gray-800 px-2 py-2 text-sm text-gray-900 focus:outline-none"
+                            />
+                        </label>
+                        <label className="mt-2 block text-xs font-semibold text-slate-700">
+                            メールアドレス（返信が必要な場合のみ）
+                            <input
+                                type="email"
+                                value={reportContactEmail}
+                                onChange={(event) =>
+                                    setReportContactEmail(event.target.value)
+                                }
+                                maxLength={254}
+                                placeholder="you@example.com"
+                                className="mt-1 w-full rounded-none border-2 border-gray-800 px-2 py-2 text-sm text-gray-900 focus:outline-none"
+                            />
+                        </label>
+                        <p className="mt-2 px-1 py-1 text-[11px] leading-5 text-slate-700">
+                            ※いただいた内容は、確認・修正対応・サービス改善のために利用します。本文には住所、電話番号、パスワードなどを書かないでください。
+                        </p>
                         <div className="mt-2 flex items-center justify-between">
                             <span className="text-[11px] text-slate-500">
                                 {reportMessage.length}/1000
@@ -482,11 +556,12 @@ export function DetailResponsiveTable<T>({
     const sortableColumns = disableSorting
         ? []
         : columns.filter((column) => isColumnSortable(column, rows));
+    const activeSortKey = sortKey ?? (isMobile ? sortableColumns[0]?.key ?? null : null);
     const sortedRows = disableSorting
         ? [...rows]
         : [...rows].sort((left, right) => {
-              if (!sortKey) return 0;
-              const column = columns.find((item) => item.key === sortKey);
+              if (!activeSortKey) return 0;
+              const column = columns.find((item) => item.key === activeSortKey);
               if (!column) return 0;
               const leftValue = getSortableValue(left, column);
               const rightValue = getSortableValue(right, column);
@@ -653,16 +728,15 @@ export function DetailResponsiveTable<T>({
                         {sortableColumns.length > 0 ? (
                             <div className="ml-auto flex items-center gap-2 text-[11px]">
                                 <select
-                                    className="h-6 rounded-none border-2 border-gray-700 bg-white px-1.5 text-[11px] text-slate-800"
-                                    value={sortKey ?? ""}
+                                    className="h-8 rounded-md border border-slate-300 bg-white px-2.5 text-[11px] font-bold text-slate-800 shadow-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                                    value={activeSortKey ?? sortableColumns[0]?.key ?? ""}
                                     onChange={(event) => {
-                                        const next = event.target.value || null;
-                                        setSortKey(next);
+                                        setSortKey(event.target.value);
                                         setSortOrder("asc");
                                         setPage(1);
                                     }}
+                                    aria-label="並び替え"
                                 >
-                                    <option value="">並び替えなし</option>
                                     {sortableColumns.map((column) => (
                                         <option key={column.key} value={column.key}>
                                             {column.header}
@@ -677,7 +751,7 @@ export function DetailResponsiveTable<T>({
                                             return current === "asc" ? "desc" : "asc";
                                         })
                                     }
-                                    className="inline-flex h-6 w-6 items-center justify-center rounded-none border-2 border-gray-700 bg-white text-slate-700"
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-red-300 hover:text-red-700"
                                     aria-label={sortOrder === "asc" ? "昇順" : "降順"}
                                     title={sortOrder === "asc" ? "昇順" : "降順"}
                                 >
@@ -791,16 +865,15 @@ export function DetailResponsiveTable<T>({
                     {sortableColumns.length > 0 ? (
                         <div className="ml-auto flex items-center gap-2 text-[11px]">
                             <select
-                                className="h-6 rounded-none border-2 border-gray-700 bg-white px-1.5 text-[11px] text-slate-800"
-                                value={sortKey ?? ""}
+                                className="h-8 rounded-md border border-slate-300 bg-white px-2.5 text-[11px] font-bold text-slate-800 shadow-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                                value={activeSortKey ?? sortableColumns[0]?.key ?? ""}
                                 onChange={(event) => {
-                                    const next = event.target.value || null;
-                                    setSortKey(next);
+                                    setSortKey(event.target.value);
                                     setSortOrder("asc");
                                     setPage(1);
                                 }}
+                                aria-label="並び替え"
                             >
-                                <option value="">並び替えなし</option>
                                 {sortableColumns.map((column) => (
                                     <option key={column.key} value={column.key}>
                                         {column.header}
@@ -815,7 +888,7 @@ export function DetailResponsiveTable<T>({
                                         return current === "asc" ? "desc" : "asc";
                                     })
                                 }
-                                className="inline-flex h-6 w-6 items-center justify-center rounded-none border-2 border-gray-700 bg-white text-slate-700"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:border-red-300 hover:text-red-700"
                                 aria-label={sortOrder === "asc" ? "昇順" : "降順"}
                                 title={sortOrder === "asc" ? "昇順" : "降順"}
                             >

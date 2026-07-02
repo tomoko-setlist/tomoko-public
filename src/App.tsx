@@ -12,6 +12,12 @@ import { useAppRoute } from "./hooks/useAppRoute";
 import { usePageMeta } from "./hooks/usePageMeta";
 import { isDbDetailUsable, isDbStatusUsable, useSetlistSearchDb } from "./hooks/useSetlistSearchDb";
 import { STORAGE_FLAG_ON } from "./lib/constants/stateFlags";
+import {
+    buildBreadcrumbRoutes,
+    getLatestSearchRoute,
+    routeLabel,
+    type BreadcrumbRoute,
+} from "./lib/routeNavigation";
 
 const INITIAL_OVERLAY_SEEN_KEY = "tomoko-duc-initial-overlay-seen-v1";
 let hasSeenInitialOverlayRuntime: boolean | null = null;
@@ -40,7 +46,10 @@ function App() {
     const [routeTitles, setRouteTitles] = useState<Record<string, string>>({});
     const hasSeenInitialOverlay = readInitialOverlaySeen();
     const { route, history, navigate, navigateToHistoryRoute } = useAppRoute();
-    const { db, dbState, refreshDb } = useSetlistSearchDb();
+    const isArticleRoute = route.name === "articles" || route.name === "article";
+    const { db, dbState, refreshDb } = useSetlistSearchDb({
+        enabled: !isArticleRoute,
+    });
     const isKrnStandalone = route.name === "krn";
     const showInitialLoading =
         dbState.status === "loading" &&
@@ -51,17 +60,29 @@ function App() {
         route,
     });
     usePageMeta({ route, routeTitles });
+    const headerTitle = routeLabel(route, routeTitles);
+    const headerBreadcrumbs = buildBreadcrumbRoutes(history, route);
     const navActions = {
         onOpenHome: () => navigate({ name: "home" }),
         onOpenSongSearch: () => navigate({ name: "song-search" }),
         onOpenSongRanking: () => navigate({ name: "song-ranking" }),
         onOpenMemberSearch: () => navigate({ name: "member-search" }),
         onOpenKrn: () => navigate({ name: "krn" }),
+        onOpenArticles: () => navigate({ name: "articles" }),
         onOpenAbout: () => navigate({ name: "about" }),
         onOpenReleases: () => navigate({ name: "releases" }),
         onRefreshDb: () => {
             void refreshDb();
         },
+    };
+    const handleNavigateBreadcrumb = (item: BreadcrumbRoute) => {
+        const latestSearchRoute = getLatestSearchRoute(history);
+        if (item.current) return;
+        if (item.fromHistory) {
+            navigateToHistoryRoute(item.route, { name: latestSearchRoute.name });
+            return;
+        }
+        navigate(item.route);
     };
 
     useEffect(() => {
@@ -90,6 +111,7 @@ function App() {
                         isMemberSearch={route.name === "member-search"}
                         isKrn={false}
                         isAbout={route.name === "about"}
+                        isArticles={route.name === "articles" || route.name === "article"}
                         isReleases={route.name === "releases"}
                         announcementUnreadCount={announcementUnreadCount}
                         dbStatus={dbState.status}
@@ -97,7 +119,13 @@ function App() {
                         onClose={() => setMobileMenuOpen(false)}
                         {...navActions}
                     />
-                    <SearchDesktopHeader onOpenHome={navActions.onOpenHome} />
+                    <SearchDesktopHeader
+                        onOpenHome={navActions.onOpenHome}
+                        title={headerTitle}
+                        breadcrumbs={headerBreadcrumbs}
+                        routeTitles={routeTitles}
+                        onNavigateBreadcrumb={handleNavigateBreadcrumb}
+                    />
 
                     <SearchSidebar
                         isSongSearch={route.name === "song-search"}
@@ -105,6 +133,7 @@ function App() {
                         isMemberSearch={route.name === "member-search"}
                         isKrn={false}
                         isAbout={route.name === "about"}
+                        isArticles={route.name === "articles" || route.name === "article"}
                         isReleases={route.name === "releases"}
                         announcementUnreadCount={announcementUnreadCount}
                         dbStatus={dbState.status}

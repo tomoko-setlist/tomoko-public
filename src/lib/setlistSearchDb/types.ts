@@ -257,6 +257,25 @@ export type SongVersionDetail = {
     albumTrackCount: number;
 };
 
+export type SongVersionSearchRow = {
+    songVersionId: number;
+    versionName: string;
+    songId: number | null;
+    songName: string;
+    songArtistId: number | null;
+    songArtistName: string;
+    artistId: number | null;
+    artistName: string;
+};
+
+export type SongVersionSearchResponse = {
+    rows: SongVersionSearchRow[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+};
+
 export type CreatorDetail = {
     creatorId: number;
     creatorName: string;
@@ -962,6 +981,10 @@ export type SetlistSearchDb = {
     listMemberColorNames: () => Promise<string[]>;
     listGroups?: () => Promise<MasterOption[]>;
     searchSongs: (request: SongSearchRequest) => Promise<SongSearchResponse>;
+    searchSongVersions?: (
+        term: string,
+        limit?: number,
+    ) => Promise<SongVersionSearchResponse>;
     searchSongRanking: (request: SongRankingRequest) => Promise<SongRankingResponse>;
     searchStatsAttributeRanking?: (request: StatsAttributeRankingRequest) => Promise<SongRankingResponse>;
     searchStatsSetlistDetails?: (request: StatsSetlistDetailRequest) => Promise<StatsSetlistDetailResponse>;

@@ -24,6 +24,8 @@ import {
     SelectField,
     UserIcon,
     XIcon,
+    normalizeTextSizeLevel,
+    type TextSizeLevel,
 } from "../ui";
 
 import type {
@@ -389,6 +391,15 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
     const [page, setPage] = useState(DEFAULT_PAGE);
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
     const [pageInput, setPageInput] = useState(String(DEFAULT_PAGE));
+    const [textSize, setTextSize] = useState<TextSizeLevel>(() => {
+        try {
+            return normalizeTextSizeLevel(
+                sessionStorage.getItem("tomoko-song-ranking-text-size"),
+            );
+        } catch {
+            return "standard";
+        }
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [result, setResult] = useState<SongRankingResponse>(EMPTY);
@@ -825,6 +836,38 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
         { value: "stages", label: "ステージ数" },
         { value: "events", label: "イベント数" },
     ];
+    const handleTextSizeChange = (next: TextSizeLevel) => {
+        setTextSize(next);
+        try {
+            sessionStorage.setItem("tomoko-song-ranking-text-size", next);
+        } catch {
+            // no-op
+        }
+    };
+    const textSizeClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-sm",
+        large: "text-base",
+        xlarge: "text-lg",
+    };
+    const mobileNameClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[10px]",
+        compact: "text-[11px]",
+        small: "text-xs",
+        standard: "text-xs",
+        large: "text-sm",
+        xlarge: "text-base",
+    };
+    const mobileArtistClass: Record<TextSizeLevel, string> = {
+        tiny: "text-[9px]",
+        compact: "text-[10px]",
+        small: "text-[11px]",
+        standard: "text-[10px]",
+        large: "text-xs",
+        xlarge: "text-sm",
+    };
 
     const canClearConditions =
         groups.some((group) =>
@@ -1226,6 +1269,8 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                     }}
                     onViewModeChange={() => {}}
                     showViewModeToggle={false}
+                    tableDensity={textSize}
+                    onTableDensityChange={handleTextSizeChange}
                 />
 
                 {dateRangeError ? <p className="mb-2 text-xs text-red-600">{dateRangeError}</p> : null}
@@ -1233,7 +1278,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                 {loading ? <p className="mb-2 text-xs text-slate-600">検索中...</p> : null}
 
                 <div className="hidden overflow-x-auto md:block">
-                    <table className="w-full text-sm">
+                    <table className={`w-full ${textSizeClass[textSize]}`}>
                         <thead className="border-b border-slate-200 bg-red-600 text-xs text-white">
                             <tr>
                                 <th className="px-2 py-2 text-left whitespace-nowrap">順位</th>
@@ -1364,7 +1409,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                                                 <>
                                                     <button
                                                         type="button"
-                                                        className="min-w-0 max-w-full whitespace-normal break-words text-left text-xs font-semibold leading-snug text-blue-700 hover:underline"
+                                                        className={`min-w-0 max-w-full whitespace-normal break-words text-left font-semibold leading-snug text-blue-700 hover:underline ${mobileNameClass[textSize]}`}
                                                         onClick={() => onOpenSong(row.songId!)}
                                                         title={row.entityName}
                                                     >
@@ -1373,7 +1418,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                                                     <span className="shrink-0 text-[10px] text-slate-400">/</span>
                                                     <button
                                                         type="button"
-                                                        className="min-w-0 max-w-full whitespace-normal break-words text-left text-[10px] leading-snug text-slate-600 hover:text-blue-700 hover:underline"
+                                                        className={`min-w-0 max-w-full whitespace-normal break-words text-left leading-snug text-slate-600 hover:text-blue-700 hover:underline ${mobileArtistClass[textSize]}`}
                                                         onClick={() => row.artistId && onOpenArtist(row.artistId)}
                                                         title={row.artistName ?? ""}
                                                     >
@@ -1383,7 +1428,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                                             ) : rankingBy === "artist" && row.entityId ? (
                                                 <button
                                                     type="button"
-                                                    className="min-w-0 max-w-full whitespace-normal break-words text-left text-xs font-semibold leading-snug text-blue-700 hover:underline"
+                                                    className={`min-w-0 max-w-full whitespace-normal break-words text-left font-semibold leading-snug text-blue-700 hover:underline ${mobileNameClass[textSize]}`}
                                                     onClick={() => onOpenArtist(row.entityId!)}
                                                     title={row.entityName}
                                                 >
@@ -1391,7 +1436,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                                                 </button>
                                             ) : (
                                                 <span
-                                                    className="min-w-0 max-w-full whitespace-normal break-words text-left text-xs font-semibold leading-snug text-slate-900"
+                                                    className={`min-w-0 max-w-full whitespace-normal break-words text-left font-semibold leading-snug text-slate-900 ${mobileNameClass[textSize]}`}
                                                     title={row.entityName}
                                                 >
                                                     {row.entityName}
@@ -1400,10 +1445,10 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                                         </div>
                                     </div>
                                     <div className="px-1.5 py-1 text-right">
-                                        <div className="font-mono text-xs font-bold text-slate-900">
+                                        <div className={`font-mono font-bold text-slate-900 ${mobileNameClass[textSize]}`}>
                                             {mobileMetric.getValue(row).toLocaleString()}
                                         </div>
-                                        <div className="text-[9px] leading-none text-slate-500">
+                                        <div className={`leading-none text-slate-500 ${mobileArtistClass[textSize]}`}>
                                             {mobileMetric.unit}
                                         </div>
                                     </div>

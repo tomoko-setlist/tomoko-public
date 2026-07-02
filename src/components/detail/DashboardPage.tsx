@@ -6,6 +6,7 @@ import {
     DetailPanel,
 } from "./DetailUi";
 import { ReleaseDbChangeSummary } from "./ReleaseDbChangeSummary";
+import { listLatestPublishedArticles, renderArticleTags } from "../../content/articles";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { EVENT_TAG_CHIP_CLASS } from "../ui/eventTagClass";
 
@@ -15,6 +16,7 @@ type DashboardPageProps = {
     db: SetlistSearchDb;
     onResolveTitle?: (title: string) => void;
     onOpenRelease: (releaseId: number) => void;
+    onOpenArticle: (slug: string) => void;
 };
 
 const STAT_CARD_CLASS =
@@ -62,7 +64,7 @@ const SVG_PAD = { top: 18, right: 62, bottom: 42, left: 70 };
 const PLOT_W = SVG_W - SVG_PAD.left - SVG_PAD.right;
 const PLOT_H = SVG_H - SVG_PAD.top - SVG_PAD.bottom;
 
-export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPageProps) {
+export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle }: DashboardPageProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [data, setData] = useState<DashboardData | null>(null);
@@ -115,6 +117,21 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPa
     if (!data) return <DetailErrorState message="データが取得できませんでした。" />;
 
     const { stats, releases } = data;
+    const latestArticles = listLatestPublishedArticles(3);
+    const latestPoint = chartPoints.at(-1);
+    const eventSetlistRate = latestPoint?.values.events_with_setlists
+        ? (latestPoint.values.events_with_setlists / Math.max(stats.totalEvents, 1)) * 100
+        : null;
+    const stageSetlistRate = latestPoint?.values.stages_with_setlists
+        ? (latestPoint.values.stages_with_setlists / Math.max(stats.totalStages, 1)) * 100
+        : null;
+    const summaryStats = [
+        { key: "events", shortLabel: "イベント", value: stats.totalEvents, subText: eventSetlistRate !== null ? `セトリ ${eventSetlistRate.toFixed(1)}%` : null },
+        { key: "stages", shortLabel: "ステージ", value: stats.totalStages, subText: stageSetlistRate !== null ? `セトリ ${stageSetlistRate.toFixed(1)}%` : null },
+        { key: "setlists", shortLabel: "セトリ", value: stats.totalSetlists, subText: null },
+        { key: "songs", shortLabel: "楽曲", value: stats.totalSongs, subText: null },
+        { key: "members", shortLabel: "メンバー", value: stats.totalMembers, subText: null },
+    ];
 
     const yMin =
         chartPoints.length > 0
@@ -196,45 +213,64 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPa
     const formatTipDate = (value: string): string => formatDateYmd(value);
 
     return (
-        <div className="space-y-4">
-            <DetailPanel className="p-4">
+        <div className="flex flex-col gap-3 md:gap-4">
+            <DetailPanel className="order-1 p-3 md:p-4">
                 <div className="flex items-start justify-between gap-2">
                     <div>
                         <p className="text-[10px] font-semibold tracking-[0.12em] text-slate-500">
                             ANNOUNCEMENTS
                         </p>
                         <h1 className="text-lg font-bold text-slate-900">お知らせ</h1>
-                        <p className="mt-1 text-xs text-slate-600">
+                        <p className="mt-1 hidden text-xs text-slate-600 sm:block">
                             登録データの概要とリリースごとの推移
                         </p>
                     </div>
                 </div>
             </DetailPanel>
 
-            <DetailPanel className="p-4">
-                <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+            <DetailPanel className="order-2 p-3 md:p-4">
+                <div className="mb-2 flex items-end justify-between gap-2 md:mb-3">
                     <div>
                         <h2 className="text-base font-bold text-neutral-950">登録データ</h2>
-                        <p className="mt-0.5 text-xs text-neutral-500">
+                        <p className="mt-0.5 hidden text-xs text-neutral-500 sm:block">
                             現在公開中の主要データ件数
                         </p>
                     </div>
-                    {chartPoints.length > 0 ? (
-                        <p className="text-xs text-neutral-500">
-                            最終更新: {formatDateYmd(chartPoints[chartPoints.length - 1].date)}
+                    {latestPoint ? (
+                        <p className="shrink-0 text-[11px] text-neutral-500 sm:text-xs">
+                            最終更新: {formatDateYmd(latestPoint.date)}
                         </p>
                     ) : null}
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:hidden">
+                    {summaryStats.map((item) => (
+                        <div key={item.key} className="min-w-0 border-b border-neutral-200 pb-1">
+                            <div className="flex items-baseline justify-between gap-2">
+                                <span className="truncate text-[11px] font-semibold text-neutral-500">
+                                    {item.shortLabel}
+                                </span>
+                                <span className="font-mono text-base font-bold leading-none text-neutral-950">
+                                    {formatCount(item.value)}
+                                </span>
+                            </div>
+                            {item.subText ? (
+                                <p className="mt-0.5 text-right text-[10px] leading-none text-neutral-500">
+                                    {item.subText}
+                                </p>
+                            ) : null}
+                        </div>
+                    ))}
+                </div>
+                <div className="hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-3 lg:grid-cols-5">
                     <div className={STAT_CARD_CLASS}>
                         <span className="text-[11px] font-semibold tracking-wide text-neutral-500">EVENTS</span>
                         <span className="mt-1 block font-mono text-2xl font-bold leading-none text-neutral-950">
                             {formatCount(stats.totalEvents)}
                         </span>
                         <span className="mt-1 block text-xs font-semibold text-neutral-700">イベント</span>
-                        {chartPoints.length > 0 && chartPoints[chartPoints.length - 1].values.events_with_setlists ? (
+                        {eventSetlistRate !== null ? (
                             <span className="mt-1 block text-[11px] text-neutral-500">
-                                セトリ登録 {((chartPoints[chartPoints.length - 1].values.events_with_setlists / Math.max(stats.totalEvents, 1)) * 100).toFixed(1)}%
+                                セトリ登録 {eventSetlistRate.toFixed(1)}%
                             </span>
                         ) : null}
                     </div>
@@ -244,9 +280,9 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPa
                             {formatCount(stats.totalStages)}
                         </span>
                         <span className="mt-1 block text-xs font-semibold text-neutral-700">ステージ</span>
-                        {chartPoints.length > 0 && chartPoints[chartPoints.length - 1].values.stages_with_setlists ? (
+                        {stageSetlistRate !== null ? (
                             <span className="mt-1 block text-[11px] text-neutral-500">
-                                セトリ登録 {((chartPoints[chartPoints.length - 1].values.stages_with_setlists / Math.max(stats.totalStages, 1)) * 100).toFixed(1)}%
+                                セトリ登録 {stageSetlistRate.toFixed(1)}%
                             </span>
                         ) : null}
                     </div>
@@ -301,7 +337,7 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPa
                 const RIGHT_X = SVG_W - SVG_PAD.right;
 
                 return (
-                <DetailPanel className="p-4">
+                <DetailPanel className="order-3 hidden p-4 md:block">
                     <div ref={chartRef} className="relative">
                     <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
                         <div>
@@ -398,7 +434,44 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease }: DashboardPa
                 );
             })() : null}
 
-            <DetailPanel className="p-4">
+            {latestArticles.length > 0 ? (
+                <DetailPanel className="order-5 p-4 md:order-4">
+                    <div className="mb-3 flex items-end justify-between gap-2">
+                        <div>
+                            <h2 className="text-base font-bold text-neutral-950">最新記事</h2>
+                        </div>
+                    </div>
+                    <div className="grid gap-3 lg:grid-cols-3">
+                        {latestArticles.map((article) => (
+                            <article
+                                key={article.slug}
+                                className="border border-neutral-300 bg-white p-4 shadow-[2px_2px_0_rgba(23,23,23,0.16)]"
+                            >
+                                <p className="text-[11px] font-semibold tracking-wide text-neutral-500">
+                                    {formatDateYmd(article.publishedAt)}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => onOpenArticle(article.slug)}
+                                    className="mt-1 text-left text-base font-bold leading-snug text-blue-700 hover:underline"
+                                >
+                                    {article.title}
+                                </button>
+                                <p className="mt-2 text-sm leading-6 text-neutral-700 line-clamp-3">
+                                    {article.summary}
+                                </p>
+                                {article.tags.length > 0 ? (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                        {renderArticleTags(article)}
+                                    </div>
+                                ) : null}
+                            </article>
+                        ))}
+                    </div>
+                </DetailPanel>
+            ) : null}
+
+            <DetailPanel className="order-4 p-4 md:order-5">
                 <h2 className="mb-3 text-base font-bold text-neutral-950">お知らせ・更新履歴</h2>
                 {releases.length === 0 ? (
                     <p className="text-sm text-slate-500">お知らせはまだありません。</p>

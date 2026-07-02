@@ -7,6 +7,7 @@ export type SearchRoute = Extract<
     | { name: "song-search" }
     | { name: "song-ranking" }
     | { name: "member-search" }
+    | { name: "articles" }
     | { name: "releases" }
 >;
 
@@ -15,6 +16,7 @@ export type DetailRoute = Exclude<
     | { name: "home" }
     | { name: "krn" }
     | { name: "about" }
+    | { name: "articles" }
     | { name: "releases" }
     | { name: "song-search" }
     | { name: "song-ranking" }
@@ -26,6 +28,7 @@ export function isDetailRoute(route: AppRoute): route is DetailRoute {
         route.name !== "home" &&
         route.name !== "krn" &&
         route.name !== "about" &&
+        route.name !== "articles" &&
         route.name !== "releases" &&
         route.name !== "song-search" &&
         route.name !== "song-ranking" &&
@@ -40,6 +43,7 @@ export function isSearchRoute(route: AppRoute): route is SearchRoute {
         route.name === "song-search" ||
         route.name === "song-ranking" ||
         route.name === "member-search" ||
+        route.name === "articles" ||
         route.name === "releases"
     );
 }
@@ -57,6 +61,44 @@ export function getLatestSearchRoute(
     return fallback;
 }
 
+export type BreadcrumbRoute = {
+    route: AppRoute;
+    current: boolean;
+    fromHistory: boolean;
+};
+
+export function buildBreadcrumbRoutes(
+    history: AppRoute[],
+    current: AppRoute,
+): BreadcrumbRoute[] {
+    if (!isDetailRoute(current)) {
+        return [];
+    }
+    const detailTrail = buildRouteTrail(history, current);
+    const breadcrumbItems = detailTrail.filter((item) => !item.current);
+    const currentBreadcrumbItem =
+        detailTrail.find((item) => item.current) ?? null;
+    const latestSearchRoute =
+        current.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
+    return [
+        { route: latestSearchRoute, current: false, fromHistory: false },
+        ...breadcrumbItems.map((item) => ({
+            route: item.route,
+            current: false,
+            fromHistory: true,
+        })),
+        ...(currentBreadcrumbItem
+            ? [
+                  {
+                      route: currentBreadcrumbItem.route,
+                      current: true,
+                      fromHistory: false,
+                  },
+              ]
+            : []),
+    ];
+}
+
 export function routeLabel(
     route: AppRoute,
     routeTitles: Record<string, string>,
@@ -68,11 +110,13 @@ export function routeLabel(
     if (route.name === "home") return "セトリ検索";
     if (route.name === "krn") return "KRN";
     if (route.name === "about") return "About";
+    if (route.name === "articles") return "記事";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
     if (route.name === "releases") return "お知らせ";
     if (route.name === "member-search") return "メンバー検索";
     if (route.name === "release") return `お知らせ #${route.id}`;
+    if (route.name === "article") return "記事";
     if (route.name === "event") return `イベント #${route.id}`;
     if (route.name === "stage") return `ステージ #${route.id}`;
     if (route.name === "venue") return `会場 #${route.id}`;

@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { SearchPagination } from "./SearchPagination";
 import { SearchResultsHeaderControls } from "./SearchResultsHeaderControls";
 import { SearchResultsCards, SearchResultsDesktopTable } from "./SearchResultsViews";
+import { normalizeTextSizeLevel, type TextSizeLevel } from "../ui";
 
 import type {
     SearchResponse,
@@ -10,6 +11,7 @@ import type {
     SortBy,
     SortOrder,
 } from "../../lib/setlistSearchDb/types";
+import type { SetlistSubmissionTarget } from "../setlistSubmission/SetlistSubmissionModal";
 
 type SearchResultsTableProps = {
     searchUnit: SearchUnit;
@@ -28,6 +30,7 @@ type SearchResultsTableProps = {
     onOpenVenue: (venueId: number) => void;
     onOpenSong: (songId: number) => void;
     onOpenArtist?: (artistId: number) => void;
+    onSubmitSetlist?: (target: SetlistSubmissionTarget) => void;
     getPrefectureNameById?: (id: number | null) => string;
     page: number;
     pageSize: number;
@@ -51,6 +54,7 @@ export function SearchResultsTable({
     onOpenVenue,
     onOpenSong,
     onOpenArtist,
+    onSubmitSetlist,
     getPrefectureNameById,
     page,
     pageSize,
@@ -72,6 +76,16 @@ export function SearchResultsTable({
         }
         return "table";
     });
+    const [tableDensity, setTableDensity] = useState<TextSizeLevel>(() => {
+        try {
+            return normalizeTextSizeLevel(
+                sessionStorage.getItem("tomoko-results-table-density"),
+            );
+        } catch {
+            // no-op
+        }
+        return "standard";
+    });
 
     const handleViewModeChange = (next: "table" | "card") => {
         if (searchUnit === "stage" && next === "card" && sortBy === "startTime") {
@@ -80,6 +94,14 @@ export function SearchResultsTable({
         setViewMode(next);
         try {
             sessionStorage.setItem("tomoko-results-view", next);
+        } catch {
+            // no-op
+        }
+    };
+    const handleTableDensityChange = (next: TextSizeLevel) => {
+        setTableDensity(next);
+        try {
+            sessionStorage.setItem("tomoko-results-table-density", next);
         } catch {
             // no-op
         }
@@ -166,6 +188,8 @@ export function SearchResultsTable({
                 onSortByChange={(nextSortBy) => onSort(nextSortBy as SortBy, sortOrder)}
                 onSortOrderChange={(nextSortOrder) => onSort(sortBy, nextSortOrder)}
                 onViewModeChange={handleViewModeChange}
+                tableDensity={tableDensity}
+                onTableDensityChange={handleTableDensityChange}
                 showDesktopSortWhenCard={true}
             />
 
@@ -195,9 +219,11 @@ export function SearchResultsTable({
                             onOpenVenue={onOpenVenue}
                             onOpenSong={onOpenSong}
                             onOpenArtist={onOpenArtist}
+                            onSubmitSetlist={onSubmitSetlist}
                             getPrefectureNameById={getPrefectureNameById}
                             visible={viewMode === "table"}
                             groupByEvent={searchUnit === "stage" && groupByEvent}
+                            density={tableDensity}
                         />
 
                         <SearchResultsCards
@@ -208,6 +234,7 @@ export function SearchResultsTable({
                             onOpenVenue={onOpenVenue}
                             onOpenSong={onOpenSong}
                             onOpenArtist={onOpenArtist}
+                            onSubmitSetlist={onSubmitSetlist}
                             getPrefectureNameById={getPrefectureNameById}
                             visible={viewMode === "card"}
                             groupByEvent={searchUnit === "stage" && groupByEvent}

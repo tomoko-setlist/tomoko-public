@@ -73,7 +73,8 @@ const disposeSharedDb = () => {
     sharedDbPromise = null;
 };
 
-export function useSetlistSearchDb() {
+export function useSetlistSearchDb(options: { enabled?: boolean } = {}) {
+    const enabled = options.enabled ?? true;
     const [db, setDb] = useState<SetlistSearchDb | null>(null);
     const [reloadToken, setReloadToken] = useState(0);
     const [dbState, setDbState] = useState<DbState>({
@@ -104,6 +105,22 @@ export function useSetlistSearchDb() {
 
     useEffect(() => {
         let isCancelled = false;
+
+        if (!enabled) {
+            setDb(sharedDb);
+            setDbState({
+                status: "ready",
+                error: "",
+                progressLoadedFiles: undefined,
+                progressTotalFiles: undefined,
+                progressFileName: undefined,
+                progressLoadedBytes: undefined,
+                progressTotalBytes: undefined,
+            });
+            return () => {
+                isCancelled = true;
+            };
+        }
 
         const init = async () => {
             try {
@@ -192,7 +209,7 @@ export function useSetlistSearchDb() {
         return () => {
             isCancelled = true;
         };
-    }, [reloadToken]);
+    }, [enabled, reloadToken]);
 
     return {
         db,
