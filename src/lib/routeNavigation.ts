@@ -119,8 +119,8 @@ export function routeLabel(
     }
     if (route.name === "home") return "セトリ検索";
     if (route.name === "krn") return "KRN";
-    if (route.name === "about") return "サポート";
-    if (route.name === "contact") return "サポート";
+    if (route.name === "about") return "About";
+    if (route.name === "contact") return "About";
     if (route.name === "articles") return "記事一覧";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";

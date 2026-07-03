@@ -19,7 +19,7 @@ export function ContactPage() {
     return (
         <div className="space-y-4">
             <DetailPanel className="p-4 md:p-6">
-                <h1 className="text-lg font-bold text-red-700">サポート</h1>
+                <h1 className="text-lg font-bold text-red-700">About</h1>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
                     掲載情報や機能について、修正依頼、改善要望、ご意見等ございましたら、下記のフォームまたは
                     <a

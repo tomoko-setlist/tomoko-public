@@ -24,8 +24,8 @@ const resolveRouteLabel = (
     if (route.name === "article") {
         return getArticleBySlug(route.slug)?.title ?? "記事";
     }
-    if (route.name === "about") return "サポート";
-    if (route.name === "contact") return "サポート";
+    if (route.name === "about") return "About";
+    if (route.name === "contact") return "About";
     if (route.name === "releases") return "更新情報";
     if (route.name === "release") return `更新情報 #${route.id}`;
     if (route.name === "krn") return "KRN";

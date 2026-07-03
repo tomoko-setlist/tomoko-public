@@ -20,7 +20,7 @@ export function AboutPage() {
                             maskSize: "contain",
                         }}
                     />
-                    サポート
+                    About
                 </h1>
             </DetailPanel>
 

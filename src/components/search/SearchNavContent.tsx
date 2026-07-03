@@ -123,7 +123,7 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
     },
     about: {
         key: "about",
-        label: "サポート",
+        label: "About",
         description: "ToMoKoについて・お問い合わせ",
         renderIcon: (className) => (
             <span
@@ -154,7 +154,7 @@ const BASE_SEARCH_NAV_SECTIONS: SearchNavSection[] = [
     },
     {
         key: "support",
-        title: "サポート",
+        title: "About",
         items: ["releases", "about"],
     },
     {
