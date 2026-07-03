@@ -23,7 +23,7 @@ export function ReleasesPage({ db, onResolveTitle, onOpenRelease }: ReleasesPage
     const [rows, setRows] = useState<ReleaseNoteSummary[]>([]);
 
     useEffect(() => {
-        onResolveTitle?.("お知らせ");
+        onResolveTitle?.("更新情報");
     }, [onResolveTitle]);
 
     useEffect(() => {
@@ -64,11 +64,11 @@ export function ReleasesPage({ db, onResolveTitle, onOpenRelease }: ReleasesPage
                 <div className="flex items-start justify-between gap-2">
                     <div>
                         <p className="text-[10px] font-semibold tracking-[0.12em] text-slate-500">
-                            ANNOUNCEMENTS
+                            UPDATES
                         </p>
-                        <h1 className="text-lg font-bold text-slate-900">お知らせ</h1>
+                        <h1 className="text-lg font-bold text-slate-900">更新情報</h1>
                         <p className="mt-1 text-xs text-slate-600">
-                            機能追加・改善・データ更新履歴を確認できます。
+                            記事、お知らせ、データ更新履歴を確認できます。
                         </p>
                     </div>
                     <DetailShareLinkButton />

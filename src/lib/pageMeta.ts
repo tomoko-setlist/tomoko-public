@@ -18,12 +18,18 @@ const resolveRouteLabel = (
     if (route.name === "home") return "セトリ検索";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
+    if (route.name === "stats") return "統計アシスタント";
     if (route.name === "member-search") return "メンバー検索";
-    if (route.name === "articles") return "記事";
-    if (route.name === "article") return getArticleBySlug(route.slug)?.title ?? "記事";
-    if (route.name === "about") return "About";
-    if (route.name === "releases") return "お知らせ";
+    if (route.name === "articles") return "記事一覧";
+    if (route.name === "article") {
+        return getArticleBySlug(route.slug)?.title ?? "記事";
+    }
+    if (route.name === "about") return "サポート";
+    if (route.name === "contact") return "サポート";
+    if (route.name === "releases") return "更新情報";
+    if (route.name === "release") return `更新情報 #${route.id}`;
     if (route.name === "krn") return "KRN";
+    if (route.name === "admin") return "管理画面";
     if (route.name === "event") return `イベント #${route.id}`;
     if (route.name === "stage") return `ステージ #${route.id}`;
     if (route.name === "venue") return `会場 #${route.id}`;
@@ -33,7 +39,7 @@ const resolveRouteLabel = (
     if (route.name === "creator") return `クリエイター #${route.id}`;
     if (route.name === "song") return `楽曲 #${route.id}`;
     if (route.name === "album") return `アルバム #${route.id}`;
-    return `お知らせ #${route.id}`;
+    return DEFAULT_SITE_NAME;
 };
 
 const resolveRouteDescription = (
@@ -47,16 +53,21 @@ const resolveRouteDescription = (
     if (route.name === "song-ranking") {
         return "ハロプロ楽曲の歌唱回数ランキングを確認できます。";
     }
+    if (route.name === "stats") {
+        return "自然言語でハロプロのセットリスト統計を集計する実験ページです。";
+    }
     if (route.name === "member-search") {
         return "ハロプロのメンバーをかな・所属状態・プロフィール情報で検索できます。";
     }
-    if (route.name === "articles") return "記事";
+    if (route.name === "articles") return "ToMoKoの運営記事、読み物、告知に関連する記事をまとめています。";
     if (route.name === "article") {
         return getArticleBySlug(route.slug)?.summary ?? `${routeLabel} の記事ページです。`;
     }
-    if (route.name === "about") return "ToMoKoについて、著作情報と免責事項をまとめています。";
-    if (route.name === "releases") return "ToMoKoのデータ登録状況と更新履歴を確認できます。";
+    if (route.name === "about") return "ToMoKoについて、著作情報、免責事項、お問い合わせをまとめています。";
+    if (route.name === "contact") return "ToMoKoについて、お問い合わせ、データ誤り、不足情報、要望をまとめています。";
+    if (route.name === "releases") return "ToMoKoの登録データ、記事、お知らせ、更新履歴を確認できます。";
     if (route.name === "krn") return "セトリ投稿お助けサービス KRN の入力・確認ページです。";
+    if (route.name === "admin") return "管理者向け編集ページです。";
     return `${routeLabel} の詳細ページです。`;
 };
 
@@ -81,6 +92,8 @@ export const buildPageMeta = ({
     const routeLabel = resolveRouteLabel(route, routeTitles);
     const description = resolveRouteDescription(route, routeLabel);
     const canonicalUrl = `${safeOrigin}${buildPathRoute(route)}`;
+    const isAdmin = route.name === "admin";
+    const isHiddenPoc = route.name === "stats";
     const title =
         route.name === "home"
             ? DEFAULT_HOME_TITLE
@@ -90,14 +103,16 @@ export const buildPageMeta = ({
         title,
         description,
         canonicalUrl,
-        robots: "index,follow",
+        robots: isAdmin || isHiddenPoc ? "noindex,nofollow,noarchive" : "index,follow",
         ogType:
             route.name === "home" ||
             route.name === "song-search" ||
             route.name === "song-ranking" ||
+            route.name === "stats" ||
             route.name === "member-search" ||
             route.name === "articles" ||
             route.name === "about" ||
+            route.name === "contact" ||
             route.name === "releases" ||
             route.name === "krn"
                 ? "website"

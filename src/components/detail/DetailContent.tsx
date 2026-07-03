@@ -1,9 +1,12 @@
-import { Component, Suspense, lazy, useEffect, useMemo, type FC, type LazyExoticComponent } from "react";
+import { Component, Suspense, useEffect, useMemo } from "react";
 
 import { DetailLoadingState, DetailPanel } from "./DetailUi";
 import { InitialDetailSummaryPanel } from "./InitialDetailSummaryPanel";
+import { lazyWithRetry } from "./lazyRoute";
 import { getInitialDetailDataForRoute } from "../../lib/initialDetailData";
+import { privateFeatureRegistry } from "../../lib/privateFeatureRegistry";
 import { AboutPage } from "../app/AboutPage";
+import { ContactPage } from "../app/ContactPage";
 
 import type { AppRoute } from "../../lib/appRoute";
 import type { SetlistSearchDb } from "../../lib/setlistSearchDb/types";
@@ -23,38 +26,8 @@ type DetailContentProps = {
     onNavigateCreator: (id: number) => void;
     onNavigateAlbum: (id: number) => void;
     onNavigateRelease: (id: number) => void;
+    onNavigateArticles: () => void;
     onNavigateArticle: (slug: string) => void;
-};
-const LAZY_RETRY_DELAY_MS = 220;
-
-async function retryImport<T>(
-    factory: () => Promise<T>,
-    retries: number,
-): Promise<T> {
-    let lastError: unknown = null;
-    for (let attempt = 0; attempt <= retries; attempt += 1) {
-        try {
-            return await factory();
-        } catch (error) {
-            lastError = error;
-            if (attempt < retries) {
-                await new Promise<void>((resolve) =>
-                    window.setTimeout(resolve, LAZY_RETRY_DELAY_MS),
-                );
-            }
-        }
-    }
-    throw lastError;
-}
-
-type PropsOf<C extends FC<never>> = Parameters<C> extends [infer P, ...unknown[]] ? P : object;
-
-const lazyWithRetry = <C extends FC<never>>(
-    factory: () => Promise<{ default: C }>,
-    retries = 1,
-): LazyExoticComponent<FC<PropsOf<C>>> => {
-    const f = (): Promise<{ default: C }> => retryImport(factory, retries);
-    return lazy(f as unknown as Parameters<typeof lazy>[0]) as unknown as LazyExoticComponent<FC<PropsOf<C>>>;
 };
 
 const EventDetailPage = lazyWithRetry(() =>
@@ -87,6 +60,8 @@ const SongRankingPage = lazyWithRetry(() =>
         default: module.SongRankingPage,
     })),
 );
+const StatsPocPage = privateFeatureRegistry.stats.Page;
+const AdminPage = privateFeatureRegistry.admin.Page;
 const MemberSearchPage = lazyWithRetry(() =>
     import("../memberSearch").then((module) => ({
         default: module.MemberSearchPage,
@@ -157,6 +132,7 @@ export function DetailContent({
     onNavigateCreator,
     onNavigateAlbum,
     onNavigateRelease,
+    onNavigateArticles,
     onNavigateArticle,
 }: DetailContentProps) {
     const initialDetailData = useMemo(
@@ -171,6 +147,9 @@ export function DetailContent({
 
     if (route.name === "about") {
         return <AboutPage />;
+    }
+    if (route.name === "contact") {
+        return <ContactPage />;
     }
 
     if (route.name === "articles" || route.name === "article") {
@@ -264,6 +243,20 @@ export function DetailContent({
                     onOpenSong={onNavigateSong}
                     onOpenArtist={onNavigateArtist}
                 />
+            ) : route.name === "stats" && StatsPocPage ? (
+                <StatsPocPage
+                    db={db}
+                    onOpenEvent={onNavigateEvent}
+                    onOpenStage={onNavigateStage}
+                    onOpenVenue={onNavigateVenue}
+                    onOpenSong={onNavigateSong}
+                    onOpenArtist={onNavigateArtist}
+                    onOpenMember={onNavigateMember}
+                    onOpenGroup={onNavigateGroup}
+                    onOpenCreator={onNavigateCreator}
+                />
+            ) : route.name === "admin" && AdminPage ? (
+                <AdminPage />
             ) : route.name === "member-search" ? (
                 <MemberSearchPage
                     db={db}
@@ -275,6 +268,7 @@ export function DetailContent({
                     db={db}
                     onResolveTitle={onResolveTitle}
                     onOpenRelease={onNavigateRelease}
+                    onOpenArticles={onNavigateArticles}
                     onOpenArticle={onNavigateArticle}
                 />
             ) : route.name === "krn" ? (

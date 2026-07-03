@@ -2,10 +2,13 @@ export type AppRoute =
   | { name: "home" }
   | { name: "krn" }
   | { name: "about" }
+  | { name: "contact" }
   | { name: "articles" }
   | { name: "releases" }
   | { name: "song-search" }
   | { name: "song-ranking" }
+  | { name: "stats" }
+  | { name: "admin" }
   | { name: "member-search" }
   | { name: "article"; slug: string }
   | { name: "release"; id: number }
@@ -50,9 +53,12 @@ const parseNamedRoute = (name: string | undefined, idRaw?: string, slugRaw?: str
   }
   if (name === "song-search") return { name: "song-search" }
   if (name === "song-ranking") return { name: "song-ranking" }
+  if (name === "stats") return { name: "stats" }
   if (name === "krn") return { name: "krn" }
   if (name === "about") return { name: "about" }
+  if (name === "contact") return { name: "contact" }
   if (name === "releases") return { name: "releases" }
+  if (name === "admin") return { name: "admin" }
   if (name === "member-search") return { name: "member-search" }
   if (name === "home") return { name: "home" }
 
@@ -120,10 +126,13 @@ export const buildPathRoute = (route: AppRoute): string => {
   if (route.name === "home") return "/"
   if (route.name === "krn") return "/krn"
   if (route.name === "about") return "/about"
+  if (route.name === "contact") return "/contact"
   if (route.name === "articles") return "/articles"
   if (route.name === "releases") return "/releases"
   if (route.name === "song-search") return "/song-search"
   if (route.name === "song-ranking") return "/song-ranking"
+  if (route.name === "stats") return "/stats"
+  if (route.name === "admin") return "/admin"
   if (route.name === "member-search") return "/member-search"
   if (route.name === "article") return `/articles/${encodeURIComponent(route.slug)}`
   return `/${route.name}/${route.id}`

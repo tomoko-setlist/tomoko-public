@@ -2,8 +2,10 @@ import {
     BarChartHorizontalIcon,
     BellIcon,
     EditIcon,
+    MailIcon,
     MusicIcon,
     SetlistIcon,
+    SettingsIcon,
     SparklesIcon,
     UserIcon,
 } from "../ui";
@@ -14,11 +16,14 @@ export type SearchNavKey =
     | "home"
     | "song"
     | "ranking"
+    | "stats"
     | "member"
     | "krn"
     | "articles"
     | "releases"
-    | "about";
+    | "contact"
+    | "about"
+    | "admin";
 
 export type SearchNavState = {
     isSongSearch: boolean;
@@ -28,10 +33,13 @@ export type SearchNavState = {
     isAbout: boolean;
     isArticles?: boolean;
     isReleases: boolean;
+    isContact: boolean;
+    isAdmin: boolean;
+    isStats?: boolean;
 };
 
 export type SearchNavSection = {
-    key: "search" | "ranking" | "krn" | "info";
+    key: "primary" | "tools" | "support" | "system";
     title: string;
     items: SearchNavKey[];
 };
@@ -76,6 +84,12 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
         description: "",
         renderIcon: (className) => <BarChartHorizontalIcon className={className} />,
     },
+    stats: {
+        key: "stats",
+        label: "統計アシスタント",
+        description: "自然言語でデータ分析",
+        renderIcon: (className) => <SparklesIcon className={className} />,
+    },
     member: {
         key: "member",
         label: "メンバー検索",
@@ -96,15 +110,21 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
     },
     releases: {
         key: "releases",
-        label: "お知らせ",
-        description: "データの登録状況",
+        label: "更新情報",
+        description: "記事・お知らせ・データ登録状況",
         renderIcon: (className) => <BellIcon className={className} />,
         hasAnnouncementBadge: true,
     },
+    contact: {
+        key: "contact",
+        label: "お問い合わせ",
+        description: "ご意見・ご連絡",
+        renderIcon: (className) => <MailIcon className={className} />,
+    },
     about: {
         key: "about",
-        label: "About",
-        description: "ToMoKoについて",
+        label: "サポート",
+        description: "ToMoKoについて・お問い合わせ",
         renderIcon: (className) => (
             <span
                 className={`${className} shrink-0 bg-current`}
@@ -113,33 +133,55 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
             />
         ),
     },
+    admin: {
+        key: "admin",
+        label: "管理画面",
+        description: "",
+        renderIcon: (className) => <SettingsIcon className={className} />,
+    },
 };
 
 const BASE_SEARCH_NAV_SECTIONS: SearchNavSection[] = [
     {
-        key: "search",
-        title: "検索サービス",
-        items: ["home", "song", "member"],
+        key: "primary",
+        title: "検索",
+        items: ["home", "song", "member", "ranking"],
     },
     {
-        key: "ranking",
-        title: "ランキング",
-        items: ["ranking"],
-    },
-    {
-        key: "krn",
-        title: "便利サービス",
+        key: "tools",
+        title: "ツール",
         items: ["krn"],
     },
     {
-        key: "info",
-        title: "About・データ",
-        items: ["articles", "releases", "about"],
+        key: "support",
+        title: "サポート",
+        items: ["releases", "about"],
+    },
+    {
+        key: "system",
+        title: "管理",
+        items: ["admin"],
     },
 ];
 
-export function getSearchNavSections(): SearchNavSection[] {
-    return BASE_SEARCH_NAV_SECTIONS;
+export function getSearchNavSections(
+    showAdmin: boolean,
+    showStats = false,
+): SearchNavSection[] {
+    const sections = showStats
+        ? [
+              BASE_SEARCH_NAV_SECTIONS[0],
+              {
+                  key: "tools" as const,
+                  title: "ツール",
+                  items: ["stats" as const, "krn" as const],
+              },
+              ...BASE_SEARCH_NAV_SECTIONS.slice(2),
+          ]
+        : BASE_SEARCH_NAV_SECTIONS;
+    return showAdmin
+        ? sections
+        : sections.filter((section) => section.key !== "system");
 }
 
 export function getSearchNavItemConfig(key: SearchNavKey): SearchNavItemConfig {
@@ -157,24 +199,33 @@ export function isSearchNavItemActive(
                 !state.isSongRanking &&
                 !state.isMemberSearch &&
                 !state.isKrn &&
+                !state.isAdmin &&
                 !state.isAbout &&
                 !state.isArticles &&
-                !state.isReleases
+                !state.isContact &&
+                !state.isReleases &&
+                !state.isStats
             );
         case "song":
-            return state.isSongSearch && !state.isSongRanking && !state.isMemberSearch;
+            return state.isSongSearch && !state.isSongRanking && !state.isMemberSearch && !state.isAdmin;
         case "ranking":
-            return state.isSongRanking && !state.isMemberSearch;
+            return state.isSongRanking && !state.isMemberSearch && !state.isAdmin;
+        case "stats":
+            return Boolean(state.isStats);
         case "member":
-            return state.isMemberSearch;
+            return state.isMemberSearch && !state.isAdmin;
         case "krn":
             return state.isKrn;
         case "articles":
             return Boolean(state.isArticles);
         case "releases":
-            return state.isReleases;
+            return state.isReleases || Boolean(state.isArticles);
+        case "contact":
+            return state.isContact;
         case "about":
-            return state.isAbout;
+            return state.isAbout || state.isContact;
+        case "admin":
+            return state.isAdmin;
         default:
             return false;
     }

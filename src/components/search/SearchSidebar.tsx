@@ -1,9 +1,12 @@
-import { ResetIcon } from "../ui";
+import { useState } from "react";
+
+import { BellIcon, ResetIcon } from "../ui";
 import {
     getSearchNavItemConfig,
     getSearchNavSections,
     isSearchNavItemActive,
     type SearchNavActionMap,
+    type SearchNavKey,
     type SearchNavState,
 } from "./SearchNavContent";
 
@@ -14,8 +17,13 @@ type SearchSidebarProps = {
     isKrn: boolean;
     isAbout: boolean;
     isArticles?: boolean;
+    isContact: boolean;
     isReleases: boolean;
+    isAdmin: boolean;
+    isStats?: boolean;
     announcementUnreadCount?: number;
+    showAdmin?: boolean;
+    showStats?: boolean;
     dbStatus?: "loading" | "coreReady" | "detailReady" | "ready" | "error";
     onOpenHome: () => void;
     onOpenSongSearch: () => void;
@@ -24,10 +32,20 @@ type SearchSidebarProps = {
     onOpenKrn: () => void;
     onOpenArticles: () => void;
     onOpenAbout: () => void;
+    onOpenContact: () => void;
     onOpenReleases: () => void;
+    onOpenAdmin: () => void;
+    onOpenStats: () => void;
     onRefreshDb?: () => void;
-    collapsed?: boolean;
-    onToggleCollapse?: () => void;
+    onOpenBirthday?: () => void;
+};
+
+const isBirthdayNoticeVisible = (): boolean => {
+    const env = (import.meta as unknown as { env: { VITE_BIRTHDAY_OVERRIDE?: string } }).env;
+    if (env.VITE_BIRTHDAY_OVERRIDE === "true") return true;
+    const now = new Date();
+    const jst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    return jst.getMonth() === 6 && jst.getDate() === 2;
 };
 
 export function SearchSidebar({
@@ -37,8 +55,13 @@ export function SearchSidebar({
     isKrn,
     isAbout,
     isArticles = false,
+    isContact,
     isReleases,
+    isAdmin,
+    isStats = false,
     announcementUnreadCount = 0,
+    showAdmin = true,
+    showStats = false,
     dbStatus = "ready",
     onOpenHome,
     onOpenSongSearch,
@@ -47,15 +70,20 @@ export function SearchSidebar({
     onOpenKrn,
     onOpenArticles,
     onOpenAbout,
+    onOpenContact,
     onOpenReleases,
+    onOpenAdmin,
+    onOpenStats,
     onRefreshDb,
-    collapsed = false,
-    onToggleCollapse,
+    onOpenBirthday,
 }: SearchSidebarProps) {
+    const [expanded, setExpanded] = useState(false);
+    const collapsed = !expanded;
+    const showBirthday = isBirthdayNoticeVisible();
     const isBusy = dbStatus === "loading" || dbStatus === "coreReady";
     const unreadBadgeText =
         announcementUnreadCount > 99 ? "99+" : String(announcementUnreadCount);
-    const navSections = getSearchNavSections();
+    const navSections = getSearchNavSections(showAdmin, showStats);
     const navState: SearchNavState = {
         isSongSearch,
         isSongRanking,
@@ -63,7 +91,10 @@ export function SearchSidebar({
         isKrn,
         isAbout,
         isArticles,
+        isContact,
         isReleases,
+        isAdmin,
+        isStats,
     };
     const navActions: SearchNavActionMap = {
         home: onOpenHome,
@@ -73,166 +104,191 @@ export function SearchSidebar({
         krn: onOpenKrn,
         articles: onOpenArticles,
         about: onOpenAbout,
+        contact: onOpenContact,
         releases: onOpenReleases,
+        admin: onOpenAdmin,
+        stats: onOpenStats,
     };
-    const navButtonBase = collapsed
-        ? "mx-auto inline-flex h-10 w-10 items-center justify-center rounded-none border-2 border-gray-800 p-0 text-gray-700 transition-all duration-200 shadow-[3px_3px_0px_0px_rgba(31,41,55,0.8)]"
-        : "w-full rounded-none border-2 border-gray-800 px-2.5 py-2 text-left transition-all duration-200 shadow-[3px_3px_0px_0px_rgba(31,41,55,0.8)]";
-    const navButtonActive = "bg-gray-200 text-gray-800";
-    const navButtonInactive =
-        "bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-900 hover:bg-gray-100 hover:text-gray-900 hover:shadow-[4px_4px_0px_0px_rgba(31,41,55,0.9)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(31,41,55,0.8)]";
-    const sectionTitleClass =
-        "px-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-gray-500";
 
     return (
         <aside
-            className={`hidden border-r border-gray-200 bg-white p-4 pt-3 text-gray-800 z-30 md:fixed md:bottom-0 md:top-12 md:flex md:flex-col ${
-                collapsed ? "md:w-20" : "md:w-64"
+            className={`z-30 hidden border-r-2 border-gray-800 bg-white text-slate-800 transition-[width,box-shadow] duration-300 ease-out md:fixed md:bottom-0 md:top-12 md:flex md:flex-col ${
+                expanded
+                    ? "md:w-[220px] shadow-[3px_0_0_0_rgba(31,41,55,0.8)]"
+                    : "md:w-16 2xl:w-[220px] 2xl:shadow-[3px_0_0_0_rgba(31,41,55,0.8)]"
             }`}
+            onMouseEnter={() => setExpanded(true)}
+            onMouseLeave={() => setExpanded(false)}
+            onFocusCapture={() => setExpanded(true)}
+            onBlurCapture={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setExpanded(false);
+                }
+            }}
         >
-            <div className="flex h-full flex-col">
-                {onToggleCollapse ? (
-                    <div className="flex justify-end">
-                        <button
-                            type="button"
-                            onClick={onToggleCollapse}
-                            className="bg-transparent px-1 py-0 text-[11px] leading-none font-semibold text-gray-700"
-                            title={collapsed ? "サイドバーを展開" : "サイドバーを最小化"}
-                            aria-label={collapsed ? "サイドバーを展開" : "サイドバーを最小化"}
-                        >
-                            {collapsed ? ">>" : "<<"}
-                        </button>
+            <div className="flex min-h-0 flex-1 flex-col py-2">
+                <nav className="min-h-0 flex-1 overflow-y-auto px-2" aria-label="メインメニュー">
+                    <div className="space-y-4">
+                        {navSections.map((section) => (
+                            <section key={section.key}>
+                                <p
+                                    className={`mb-1 overflow-hidden px-2 text-[10px] font-bold text-slate-400 transition-opacity duration-200 ${
+                                        collapsed
+                                            ? "h-0 opacity-0 2xl:h-auto 2xl:opacity-100"
+                                            : "h-auto opacity-100"
+                                    }`}
+                                >
+                                    {section.title}
+                                </p>
+                                <div className="space-y-1">
+                                    {section.items.map((itemKey) => (
+                                        <SidebarNavButton
+                                            key={itemKey}
+                                            itemKey={itemKey}
+                                            active={isSearchNavItemActive(itemKey, navState)}
+                                            collapsed={collapsed}
+                                            announcementUnreadCount={announcementUnreadCount}
+                                            unreadBadgeText={unreadBadgeText}
+                                            onClick={navActions[itemKey]}
+                                        />
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
                     </div>
-                ) : null}
-                <div className="mt-1.5 space-y-2.5">
-                    {navSections.map((section, sectionIndex) => (
-                        <section
-                            key={section.key}
-                            className={
-                                sectionIndex === 0
-                                    ? "space-y-2"
-                                    : "space-y-2 border-t border-gray-200 pt-3"
-                            }
-                        >
-                            {!collapsed ? (
-                                <p className={sectionTitleClass}>{section.title}</p>
-                            ) : null}
-                            <ul className="space-y-1.5">
-                                {section.items.map((itemKey) => {
-                                    const item = getSearchNavItemConfig(itemKey);
-                                    const isActive = isSearchNavItemActive(
-                                        item.key,
-                                        navState,
-                                    );
+                </nav>
 
-                                    return (
-                                        <li key={item.key}>
-                                            <button
-                                                type="button"
-                                                onClick={navActions[item.key]}
-                                                className={`${navButtonBase} ${
-                                                    isActive
-                                                        ? navButtonActive
-                                                        : navButtonInactive
-                                                }`}
-                                            >
-                                                {collapsed ? (
-                                                    <div className="relative flex h-full w-full items-center justify-center">
-                                                        {item.renderIcon("h-4 w-4")}
-                                                        {item.hasAnnouncementBadge &&
-                                                        announcementUnreadCount > 0 ? (
-                                                            <span
-                                                                aria-label="未確認お知らせ件数"
-                                                                className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-none bg-red-600 px-1 text-[9px] font-bold leading-none text-white"
-                                                            >
-                                                                {unreadBadgeText}
-                                                            </span>
-                                                        ) : null}
-                                                    </div>
-                                                ) : item.hasAnnouncementBadge ? (
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div className="flex items-center space-x-2.5">
-                                                            {item.renderIcon(
-                                                                "h-4 w-4",
-                                                            )}
-                                                            <div>
-                                                                <div className="text-[13px] font-medium leading-4">
-                                                                    {item.label}
-                                                                </div>
-                                                                {item.description ? (
-                                                                    <div
-                                                                        className={`text-[11px] leading-4 ${
-                                                                            isActive
-                                                                                ? "text-gray-600"
-                                                                                : "text-gray-500"
-                                                                        }`}
-                                                                    >
-                                                                        {item.description}
-                                                                    </div>
-                                                                ) : null}
-                                                            </div>
-                                                        </div>
-                                                        <div className="shrink-0">
-                                                            {announcementUnreadCount >
-                                                            0 ? (
-                                                                <span
-                                                                    aria-label="未確認お知らせ件数"
-                                                                    className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-none bg-red-600 px-1.5 text-[10px] font-bold leading-none text-white"
-                                                                >
-                                                                    {unreadBadgeText}
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center space-x-2.5">
-                                                        {item.renderIcon("h-4 w-4")}
-                                                        <div>
-                                                            <div className="text-[13px] font-medium leading-4">
-                                                                {item.label}
-                                                            </div>
-                                                            {item.description ? (
-                                                                <div
-                                                                    className={`text-[11px] leading-4 ${
-                                                                        isActive
-                                                                            ? "text-gray-600"
-                                                                            : "text-gray-500"
-                                                                    }`}
-                                                                >
-                                                                    {item.description}
-                                                                </div>
-                                                            ) : null}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </section>
-                    ))}
-                </div>
-                <div className="mt-auto space-y-2">
-                    {onRefreshDb ? (
-                        <div className="border-t border-gray-200 pt-4">
+                {(showBirthday && onOpenBirthday) || onRefreshDb ? (
+                    <div className="space-y-1 border-t-2 border-gray-800 px-2 pt-2">
+                        {showBirthday && onOpenBirthday ? (
+                            <BirthdaySidebarButton
+                                collapsed={collapsed}
+                                onClick={onOpenBirthday}
+                            />
+                        ) : null}
+                        {onRefreshDb ? (
                             <button
                                 type="button"
                                 onClick={onRefreshDb}
                                 disabled={isBusy}
-                                className={`${navButtonBase} ${navButtonInactive} disabled:pointer-events-none disabled:opacity-55`}
-                                title={isBusy ? "DB更新中..." : "DB最新化（キャッシュ更新）"}
+                                className={`flex h-10 w-full items-center rounded-none text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 ${
+                                    collapsed ? "justify-center px-0" : "justify-start gap-3 px-2"
+                                }`}
+                                title={isBusy ? "DB更新中..." : "DB最新化"}
                                 aria-label={isBusy ? "DB更新中..." : "DB最新化"}
                             >
-                                <span className={collapsed ? "flex items-center justify-center" : "inline-flex items-center gap-2.5"}>
-                                    <ResetIcon className="h-4 w-4" />
-                                    {!collapsed ? <span className="text-[13px] font-medium leading-4">{isBusy ? "更新中..." : "DB最新化"}</span> : null}
+                                <ResetIcon className="h-4 w-4 shrink-0" />
+                                <span
+                                    className={`overflow-hidden whitespace-nowrap transition-[opacity,width] duration-200 ${
+                                        collapsed
+                                            ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
+                                            : "w-auto opacity-100"
+                                    }`}
+                                >
+                                    {isBusy ? "更新中..." : "DB最新化"}
                                 </span>
                             </button>
-                        </div>
-                    ) : null}
-                </div>
+                        ) : null}
+                    </div>
+                ) : null}
             </div>
         </aside>
+    );
+}
+
+function BirthdaySidebarButton({
+    collapsed,
+    onClick,
+}: {
+    collapsed: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`flex h-10 w-full items-center rounded-none text-sm font-bold text-red-700 transition-colors hover:bg-red-50 ${
+                collapsed
+                    ? "justify-center px-0 2xl:justify-start 2xl:gap-3 2xl:px-2"
+                    : "justify-start gap-3 px-2"
+            }`}
+            title="大切なお知らせ"
+            aria-label={collapsed ? "大切なお知らせ" : undefined}
+        >
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center border-2 border-red-600 bg-red-600 text-white">
+                <BellIcon className="h-4 w-4 shrink-0" />
+            </span>
+            <span
+                className={`overflow-hidden whitespace-nowrap text-left transition-[opacity,width] duration-200 ${
+                    collapsed
+                        ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
+                        : "w-auto opacity-100"
+                }`}
+            >
+                大切なお知らせ
+            </span>
+        </button>
+    );
+}
+
+function SidebarNavButton({
+    itemKey,
+    active,
+    collapsed,
+    announcementUnreadCount,
+    unreadBadgeText,
+    onClick,
+}: {
+    itemKey: SearchNavKey;
+    active: boolean;
+    collapsed: boolean;
+    announcementUnreadCount: number;
+    unreadBadgeText: string;
+    onClick: () => void;
+}) {
+    const item = getSearchNavItemConfig(itemKey);
+    const showBadge = item.hasAnnouncementBadge && announcementUnreadCount > 0;
+    const buttonClass = active
+        ? "text-red-700"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+    const iconClass = active
+        ? "border-red-600 bg-red-600 text-white"
+        : "border-transparent text-current";
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`relative flex h-10 w-full items-center rounded-none text-sm font-medium transition-colors duration-150 ${buttonClass} ${
+                collapsed
+                    ? "justify-center px-0 2xl:justify-start 2xl:gap-3 2xl:px-2"
+                    : "justify-start gap-3 px-2"
+            }`}
+            title={item.label}
+            aria-label={collapsed ? item.label : undefined}
+        >
+            <span
+                className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center border-2 transition-colors duration-150 ${iconClass}`}
+            >
+                {item.renderIcon("h-4 w-4 shrink-0")}
+                {showBadge ? (
+                    <span
+                        aria-label="未確認お知らせ件数"
+                        className="absolute -right-2 -top-2 inline-flex min-h-4 min-w-4 items-center justify-center bg-red-600 px-1 text-[9px] font-bold leading-none text-white"
+                    >
+                        {unreadBadgeText}
+                    </span>
+                ) : null}
+            </span>
+            <span
+                className={`overflow-hidden whitespace-nowrap text-left transition-[opacity,width] duration-200 ${
+                    collapsed
+                        ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
+                        : "w-auto opacity-100"
+                }`}
+            >
+                {item.label}
+            </span>
+        </button>
     );
 }

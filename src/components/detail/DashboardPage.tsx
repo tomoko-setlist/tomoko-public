@@ -16,6 +16,7 @@ type DashboardPageProps = {
     db: SetlistSearchDb;
     onResolveTitle?: (title: string) => void;
     onOpenRelease: (releaseId: number) => void;
+    onOpenArticles: () => void;
     onOpenArticle: (slug: string) => void;
 };
 
@@ -64,7 +65,7 @@ const SVG_PAD = { top: 18, right: 62, bottom: 42, left: 70 };
 const PLOT_W = SVG_W - SVG_PAD.left - SVG_PAD.right;
 const PLOT_H = SVG_H - SVG_PAD.top - SVG_PAD.bottom;
 
-export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle }: DashboardPageProps) {
+export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticles, onOpenArticle }: DashboardPageProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [data, setData] = useState<DashboardData | null>(null);
@@ -78,7 +79,7 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
     };
 
     useEffect(() => {
-        onResolveTitle?.("お知らせ");
+        onResolveTitle?.("更新情報");
     }, [onResolveTitle]);
 
     useEffect(() => {
@@ -218,11 +219,11 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
                 <div className="flex items-start justify-between gap-2">
                     <div>
                         <p className="text-[10px] font-semibold tracking-[0.12em] text-slate-500">
-                            ANNOUNCEMENTS
+                            UPDATES
                         </p>
-                        <h1 className="text-lg font-bold text-slate-900">お知らせ</h1>
+                        <h1 className="text-lg font-bold text-slate-900">更新情報</h1>
                         <p className="mt-1 hidden text-xs text-slate-600 sm:block">
-                            登録データの概要とリリースごとの推移
+                            登録データ、記事、お知らせ・更新履歴
                         </p>
                     </div>
                 </div>
@@ -440,6 +441,13 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
                         <div>
                             <h2 className="text-base font-bold text-neutral-950">最新記事</h2>
                         </div>
+                        <button
+                            type="button"
+                            onClick={onOpenArticles}
+                            className="shrink-0 text-xs font-semibold text-blue-700 hover:underline"
+                        >
+                            記事一覧
+                        </button>
                     </div>
                     <div className="grid gap-3 lg:grid-cols-3">
                         {latestArticles.map((article) => (

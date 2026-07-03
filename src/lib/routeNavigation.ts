@@ -6,8 +6,10 @@ export type SearchRoute = Extract<
     | { name: "krn" }
     | { name: "song-search" }
     | { name: "song-ranking" }
+    | { name: "stats" }
     | { name: "member-search" }
     | { name: "articles" }
+    | { name: "contact" }
     | { name: "releases" }
 >;
 
@@ -16,11 +18,14 @@ export type DetailRoute = Exclude<
     | { name: "home" }
     | { name: "krn" }
     | { name: "about" }
+    | { name: "contact" }
     | { name: "articles" }
     | { name: "releases" }
     | { name: "song-search" }
     | { name: "song-ranking" }
+    | { name: "stats" }
     | { name: "member-search" }
+    | { name: "admin" }
 >;
 
 export function isDetailRoute(route: AppRoute): route is DetailRoute {
@@ -28,11 +33,14 @@ export function isDetailRoute(route: AppRoute): route is DetailRoute {
         route.name !== "home" &&
         route.name !== "krn" &&
         route.name !== "about" &&
+        route.name !== "contact" &&
         route.name !== "articles" &&
         route.name !== "releases" &&
         route.name !== "song-search" &&
         route.name !== "song-ranking" &&
-        route.name !== "member-search"
+        route.name !== "stats" &&
+        route.name !== "member-search" &&
+        route.name !== "admin"
     );
 }
 
@@ -42,8 +50,10 @@ export function isSearchRoute(route: AppRoute): route is SearchRoute {
         route.name === "krn" ||
         route.name === "song-search" ||
         route.name === "song-ranking" ||
+        route.name === "stats" ||
         route.name === "member-search" ||
         route.name === "articles" ||
+        route.name === "contact" ||
         route.name === "releases"
     );
 }
@@ -79,7 +89,7 @@ export function buildBreadcrumbRoutes(
     const currentBreadcrumbItem =
         detailTrail.find((item) => item.current) ?? null;
     const latestSearchRoute =
-        current.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
+        current.name === "article" ? { name: "releases" as const } : getLatestSearchRoute(history);
     return [
         { route: latestSearchRoute, current: false, fromHistory: false },
         ...breadcrumbItems.map((item) => ({
@@ -109,13 +119,16 @@ export function routeLabel(
     }
     if (route.name === "home") return "セトリ検索";
     if (route.name === "krn") return "KRN";
-    if (route.name === "about") return "About";
-    if (route.name === "articles") return "記事";
+    if (route.name === "about") return "サポート";
+    if (route.name === "contact") return "サポート";
+    if (route.name === "articles") return "記事一覧";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
-    if (route.name === "releases") return "お知らせ";
+    if (route.name === "releases") return "更新情報";
+    if (route.name === "stats") return "統計アシスタント";
+    if (route.name === "admin") return "管理画面";
     if (route.name === "member-search") return "メンバー検索";
-    if (route.name === "release") return `お知らせ #${route.id}`;
+    if (route.name === "release") return `更新情報 #${route.id}`;
     if (route.name === "article") return "記事";
     if (route.name === "event") return `イベント #${route.id}`;
     if (route.name === "stage") return `ステージ #${route.id}`;
@@ -156,7 +169,7 @@ export function buildRouteTrail(
         seen.add(key);
         uniqueFromTail.push(route);
     }
-    const ordered = uniqueFromTail.reverse().slice(-4);
+    const ordered = uniqueFromTail.reverse().slice(-3);
     return ordered.map((route, index) => ({
         route,
         current: index === ordered.length - 1,

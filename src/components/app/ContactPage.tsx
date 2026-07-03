@@ -16,6 +16,39 @@ const REPORT_TYPE_OPTIONS: Array<{ value: ContactReportType; label: string }> = 
 const GITHUB_URL = "https://github.com/tomoko-setlist/tomoko-public";
 
 export function ContactPage() {
+    return (
+        <div className="space-y-4">
+            <DetailPanel className="p-4 md:p-6">
+                <h1 className="text-lg font-bold text-red-700">サポート</h1>
+                <p className="mt-2 text-sm leading-6 text-slate-700">
+                    掲載情報や機能について、修正依頼、改善要望、ご意見等ございましたら、下記のフォームまたは
+                    <a
+                        href={GITHUB_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="tomoko-setlist/tomoko-public"
+                        className="mx-1 inline-flex items-center gap-1 font-semibold text-blue-700 hover:underline"
+                    >
+                        <GithubIcon className="h-3.5 w-3.5" />
+                        GitHub
+                        <ExternalLinkIcon className="h-3.5 w-3.5" />
+                    </a>
+                    よりお送りください。
+                </p>
+            </DetailPanel>
+
+            <ContactFormPanel sourceContext="contact-page" routeName="contact" />
+        </div>
+    );
+}
+
+export function ContactFormPanel({
+    sourceContext,
+    routeName,
+}: {
+    sourceContext: "about-page" | "contact-page";
+    routeName: "about" | "contact";
+}) {
     const [reportType, setReportType] = useState<ContactReportType>("correction");
     const [message, setMessage] = useState("");
     const [contactName, setContactName] = useState("");
@@ -54,12 +87,12 @@ export function ContactPage() {
                 message: trimmedMessage,
                 pageUrl: window.location.href,
                 pageTitle: document.title || "お問い合わせ",
-                routeName: "contact",
+                routeName,
                 routeId: null,
                 reportType,
                 contactName: trimmedName,
                 contactEmail: trimmedEmail,
-                sourceContext: "contact-page",
+                sourceContext,
             });
             setMessage("");
             setContactName("");
@@ -74,27 +107,11 @@ export function ContactPage() {
     };
 
     return (
-        <div className="space-y-4">
-            <DetailPanel className="p-4 md:p-6">
-                <h1 className="text-lg font-bold text-red-700">お問い合わせ</h1>
+        <DetailPanel className="p-4 md:p-6">
+                <h2 className="text-base font-bold text-slate-900">お問い合わせ</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
-                    掲載情報や機能について、修正依頼、改善要望、ご意見等ございましたら、下記のフォームまたは
-                    <a
-                        href={GITHUB_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        title="tomoko-setlist/tomoko-public"
-                        className="mx-1 inline-flex items-center gap-1 font-semibold text-blue-700 hover:underline"
-                    >
-                        <GithubIcon className="h-3.5 w-3.5" />
-                        GitHub
-                        <ExternalLinkIcon className="h-3.5 w-3.5" />
-                    </a>
-                    よりお気軽にお送り下さい。
+                    データの誤り、不足情報、機能要望、その他の連絡を送信できます。
                 </p>
-            </DetailPanel>
-
-            <DetailPanel className="p-4 md:p-6">
                 <div className="grid gap-3 md:grid-cols-[180px_1fr]">
                     <label className="text-sm font-semibold text-slate-800">
                         種別
@@ -179,6 +196,5 @@ export function ContactPage() {
                     </p>
                 ) : null}
             </DetailPanel>
-        </div>
     );
 }

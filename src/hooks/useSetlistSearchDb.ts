@@ -107,15 +107,18 @@ export function useSetlistSearchDb(options: { enabled?: boolean } = {}) {
         let isCancelled = false;
 
         if (!enabled) {
-            setDb(sharedDb);
-            setDbState({
-                status: "ready",
-                error: "",
-                progressLoadedFiles: undefined,
-                progressTotalFiles: undefined,
-                progressFileName: undefined,
-                progressLoadedBytes: undefined,
-                progressTotalBytes: undefined,
+            queueMicrotask(() => {
+                if (isCancelled) return;
+                setDb(sharedDb);
+                setDbState({
+                    status: "ready",
+                    error: "",
+                    progressLoadedFiles: undefined,
+                    progressTotalFiles: undefined,
+                    progressFileName: undefined,
+                    progressLoadedBytes: undefined,
+                    progressTotalBytes: undefined,
+                });
             });
             return () => {
                 isCancelled = true;

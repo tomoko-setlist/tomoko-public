@@ -108,7 +108,7 @@ const parseMemo = (value: string): DraftRow[] => {
         .map((line) => line.trim())
         .filter(Boolean)
         .forEach((line) => {
-            const normalized = line.replace(/^\s*\d+[.)、\s-]*/, "").trim();
+            const normalized = line.replace(/^\s*\d+[.)、\s-]+/, "").trim();
             const nextSection = getSectionFromLine(normalized);
             if (nextSection) {
                 section = nextSection;

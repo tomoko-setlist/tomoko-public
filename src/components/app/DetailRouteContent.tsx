@@ -63,7 +63,7 @@ export function DetailRouteContent({
     const detailTrail = isDetail ? buildRouteTrail(history, route) : [];
     const breadcrumbItems = detailTrail.filter((item) => !item.current);
     const latestSearchRoute =
-        route.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
+        route.name === "article" ? { name: "releases" as const } : getLatestSearchRoute(history);
     const breadcrumbRoutes = buildBreadcrumbRoutes(history, route);
     const previousBreadcrumbRoute =
         breadcrumbItems.length > 0
@@ -87,6 +87,7 @@ export function DetailRouteContent({
                 onNavigateCreator={(id) => navigate({ name: "creator", id })}
                 onNavigateAlbum={(id) => navigate({ name: "album", id })}
                 onNavigateRelease={(id) => navigate({ name: "release", id })}
+                onNavigateArticles={() => navigate({ name: "articles" })}
                 onNavigateArticle={(slug) => navigate({ name: "article", slug })}
             />
         );
@@ -173,6 +174,7 @@ export function DetailRouteContent({
                 onNavigateCreator={(id) => navigate({ name: "creator", id })}
                 onNavigateAlbum={(id) => navigate({ name: "album", id })}
                 onNavigateRelease={(id) => navigate({ name: "release", id })}
+                onNavigateArticles={() => navigate({ name: "articles" })}
                 onNavigateArticle={(slug) => navigate({ name: "article", slug })}
             />
 
