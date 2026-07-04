@@ -1,4 +1,3 @@
-import { ContactFormPanel } from "./ContactPage";
 import { DetailPanel } from "../detail/DetailUi";
 
 export function AboutPage() {
@@ -84,8 +83,6 @@ export function AboutPage() {
                     お名前とメールアドレスの入力は任意です。返信が必要な場合のみ入力してください。
                 </p>
             </DetailPanel>
-
-            <ContactFormPanel sourceContext="about-page" routeName="about" />
         </div>
     );
 }

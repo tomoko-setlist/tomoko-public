@@ -1,5 +1,4 @@
 import {
-    BellIcon,
     MenuIcon,
     ResetIcon,
     XIcon,
@@ -43,15 +42,6 @@ type SearchMobileNavProps = {
     onOpenAdmin: () => void;
     onOpenStats: () => void;
     onRefreshDb?: () => void;
-    onOpenBirthday?: () => void;
-};
-
-const isBirthdayNoticeVisible = (): boolean => {
-    const env = (import.meta as unknown as { env: { VITE_BIRTHDAY_OVERRIDE?: string } }).env;
-    if (env.VITE_BIRTHDAY_OVERRIDE === "true") return true;
-    const now = new Date();
-    const jst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    return jst.getMonth() === 6 && jst.getDate() === 2;
 };
 
 export function SearchMobileNav({
@@ -84,9 +74,7 @@ export function SearchMobileNav({
     onOpenAdmin,
     onOpenStats,
     onRefreshDb,
-    onOpenBirthday,
 }: SearchMobileNavProps) {
-    const showBirthday = isBirthdayNoticeVisible();
     const isBusy = dbStatus === "loading" || dbStatus === "coreReady";
     const unreadBadgeText =
         announcementUnreadCount > 99 ? "99+" : String(announcementUnreadCount);
@@ -207,21 +195,6 @@ export function SearchMobileNav({
                     </nav>
 
                     <div className="space-y-1 border-t border-slate-200 px-3 py-2">
-                        {showBirthday && onOpenBirthday ? (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onOpenBirthday();
-                                    onClose();
-                                }}
-                                className="flex h-10 w-full items-center gap-3 bg-red-600 px-2 text-sm font-bold text-white hover:bg-red-700"
-                                aria-label="大切なお知らせ"
-                                title="大切なお知らせ"
-                            >
-                                <BellIcon className="h-4 w-4" />
-                                <span>大切なお知らせ</span>
-                            </button>
-                        ) : null}
                         <button
                             type="button"
                             onClick={() => {

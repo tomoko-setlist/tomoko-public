@@ -80,14 +80,6 @@
   80% { transform: scale(1.1) rotate(135deg); opacity: 0.4; }
 }
 
-.animate-birthday-in {
-  animation: birthday-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.animate-birthday-out {
-  animation: birthday-out 0.16s ease-in forwards;
-}
-
 .animate-border-shine {
   animation: border-shine 6s linear infinite;
 }

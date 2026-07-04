@@ -13,7 +13,7 @@ export function ArticlesPage({ onResolveTitle, onOpenArticle }: ArticlesPageProp
     const articles = listPublishedArticles();
 
     useEffect(() => {
-        onResolveTitle?.("記事一覧");
+        onResolveTitle?.("記事");
     }, [onResolveTitle]);
 
     return (
@@ -24,7 +24,7 @@ export function ArticlesPage({ onResolveTitle, onOpenArticle }: ArticlesPageProp
                         <p className="text-[10px] font-semibold tracking-[0.12em] text-slate-500">
                             ARTICLES
                         </p>
-                        <h1 className="text-lg font-bold text-slate-900">記事一覧</h1>
+                        <h1 className="text-lg font-bold text-slate-900">記事</h1>
                     </div>
                     <DetailShareLinkButton />
                 </div>

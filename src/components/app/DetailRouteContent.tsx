@@ -63,7 +63,7 @@ export function DetailRouteContent({
     const detailTrail = isDetail ? buildRouteTrail(history, route) : [];
     const breadcrumbItems = detailTrail.filter((item) => !item.current);
     const latestSearchRoute =
-        route.name === "article" ? { name: "releases" as const } : getLatestSearchRoute(history);
+        route.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
     const breadcrumbRoutes = buildBreadcrumbRoutes(history, route);
     const previousBreadcrumbRoute =
         breadcrumbItems.length > 0

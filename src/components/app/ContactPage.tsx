@@ -19,7 +19,7 @@ export function ContactPage() {
     return (
         <div className="space-y-4">
             <DetailPanel className="p-4 md:p-6">
-                <h1 className="text-lg font-bold text-red-700">About</h1>
+                <h1 className="text-lg font-bold text-red-700">お問い合わせ</h1>
                 <p className="mt-2 text-sm leading-6 text-slate-700">
                     掲載情報や機能について、修正依頼、改善要望、ご意見等ございましたら、下記のフォームまたは
                     <a
@@ -37,18 +37,12 @@ export function ContactPage() {
                 </p>
             </DetailPanel>
 
-            <ContactFormPanel sourceContext="contact-page" routeName="contact" />
+            <ContactFormPanel />
         </div>
     );
 }
 
-export function ContactFormPanel({
-    sourceContext,
-    routeName,
-}: {
-    sourceContext: "about-page" | "contact-page";
-    routeName: "about" | "contact";
-}) {
+export function ContactFormPanel() {
     const [reportType, setReportType] = useState<ContactReportType>("correction");
     const [message, setMessage] = useState("");
     const [contactName, setContactName] = useState("");
@@ -87,12 +81,12 @@ export function ContactFormPanel({
                 message: trimmedMessage,
                 pageUrl: window.location.href,
                 pageTitle: document.title || "お問い合わせ",
-                routeName,
+                routeName: "contact",
                 routeId: null,
                 reportType,
                 contactName: trimmedName,
                 contactEmail: trimmedEmail,
-                sourceContext,
+                sourceContext: "contact-page",
             });
             setMessage("");
             setContactName("");

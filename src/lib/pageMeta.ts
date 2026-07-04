@@ -20,12 +20,12 @@ const resolveRouteLabel = (
     if (route.name === "song-ranking") return "歌唱回数ランキング";
     if (route.name === "stats") return "統計アシスタント";
     if (route.name === "member-search") return "メンバー検索";
-    if (route.name === "articles") return "記事一覧";
+    if (route.name === "articles") return "記事";
     if (route.name === "article") {
         return getArticleBySlug(route.slug)?.title ?? "記事";
     }
-    if (route.name === "about") return "About";
-    if (route.name === "contact") return "About";
+    if (route.name === "about") return "ToMoKoって？";
+    if (route.name === "contact") return "お問い合わせ";
     if (route.name === "releases") return "更新情報";
     if (route.name === "release") return `更新情報 #${route.id}`;
     if (route.name === "krn") return "KRN";
@@ -59,13 +59,13 @@ const resolveRouteDescription = (
     if (route.name === "member-search") {
         return "ハロプロのメンバーをかな・所属状態・プロフィール情報で検索できます。";
     }
-    if (route.name === "articles") return "ToMoKoの運営記事、読み物、告知に関連する記事をまとめています。";
+    if (route.name === "articles") return "ToMoKoからのお知らせ、運営の話、読み物をまとめています。";
     if (route.name === "article") {
         return getArticleBySlug(route.slug)?.summary ?? `${routeLabel} の記事ページです。`;
     }
-    if (route.name === "about") return "ToMoKoについて、著作情報、免責事項、お問い合わせをまとめています。";
-    if (route.name === "contact") return "ToMoKoについて、お問い合わせ、データ誤り、不足情報、要望をまとめています。";
-    if (route.name === "releases") return "ToMoKoの登録データ、記事、お知らせ、更新履歴を確認できます。";
+    if (route.name === "about") return "ToMoKoについて、著作情報と免責事項をまとめています。";
+    if (route.name === "contact") return "ToMoKoへのお問い合わせ、データ誤り、不足情報、要望をお送りいただけます。";
+    if (route.name === "releases") return "ToMoKoの登録データ、お知らせ、更新履歴を確認できます。";
     if (route.name === "krn") return "セトリ投稿お助けサービス KRN の入力・確認ページです。";
     if (route.name === "admin") return "管理者向け編集ページです。";
     return `${routeLabel} の詳細ページです。`;

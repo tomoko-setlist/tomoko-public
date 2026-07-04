@@ -89,7 +89,7 @@ export function buildBreadcrumbRoutes(
     const currentBreadcrumbItem =
         detailTrail.find((item) => item.current) ?? null;
     const latestSearchRoute =
-        current.name === "article" ? { name: "releases" as const } : getLatestSearchRoute(history);
+        current.name === "article" ? { name: "articles" as const } : getLatestSearchRoute(history);
     return [
         { route: latestSearchRoute, current: false, fromHistory: false },
         ...breadcrumbItems.map((item) => ({
@@ -119,9 +119,9 @@ export function routeLabel(
     }
     if (route.name === "home") return "セトリ検索";
     if (route.name === "krn") return "KRN";
-    if (route.name === "about") return "About";
-    if (route.name === "contact") return "About";
-    if (route.name === "articles") return "記事一覧";
+    if (route.name === "about") return "ToMoKoって？";
+    if (route.name === "contact") return "お問い合わせ";
+    if (route.name === "articles") return "記事";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
     if (route.name === "releases") return "更新情報";

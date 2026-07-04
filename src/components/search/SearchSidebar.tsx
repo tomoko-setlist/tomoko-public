@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { BellIcon, ResetIcon } from "../ui";
+import { ResetIcon } from "../ui";
 import {
     getSearchNavItemConfig,
     getSearchNavSections,
@@ -37,15 +37,6 @@ type SearchSidebarProps = {
     onOpenAdmin: () => void;
     onOpenStats: () => void;
     onRefreshDb?: () => void;
-    onOpenBirthday?: () => void;
-};
-
-const isBirthdayNoticeVisible = (): boolean => {
-    const env = (import.meta as unknown as { env: { VITE_BIRTHDAY_OVERRIDE?: string } }).env;
-    if (env.VITE_BIRTHDAY_OVERRIDE === "true") return true;
-    const now = new Date();
-    const jst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    return jst.getMonth() === 6 && jst.getDate() === 2;
 };
 
 export function SearchSidebar({
@@ -75,11 +66,9 @@ export function SearchSidebar({
     onOpenAdmin,
     onOpenStats,
     onRefreshDb,
-    onOpenBirthday,
 }: SearchSidebarProps) {
     const [expanded, setExpanded] = useState(false);
     const collapsed = !expanded;
-    const showBirthday = isBirthdayNoticeVisible();
     const isBusy = dbStatus === "loading" || dbStatus === "coreReady";
     const unreadBadgeText =
         announcementUnreadCount > 99 ? "99+" : String(announcementUnreadCount);
@@ -158,76 +147,33 @@ export function SearchSidebar({
                     </div>
                 </nav>
 
-                {(showBirthday && onOpenBirthday) || onRefreshDb ? (
+                {onRefreshDb ? (
                     <div className="space-y-1 border-t-2 border-gray-800 px-2 pt-2">
-                        {showBirthday && onOpenBirthday ? (
-                            <BirthdaySidebarButton
-                                collapsed={collapsed}
-                                onClick={onOpenBirthday}
-                            />
-                        ) : null}
-                        {onRefreshDb ? (
-                            <button
-                                type="button"
-                                onClick={onRefreshDb}
-                                disabled={isBusy}
-                                className={`flex h-10 w-full items-center rounded-none text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 ${
-                                    collapsed ? "justify-center px-0" : "justify-start gap-3 px-2"
+                        <button
+                            type="button"
+                            onClick={onRefreshDb}
+                            disabled={isBusy}
+                            className={`flex h-10 w-full items-center rounded-none text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 ${
+                                collapsed ? "justify-center px-0" : "justify-start gap-3 px-2"
+                            }`}
+                            title={isBusy ? "DB更新中..." : "DB最新化"}
+                            aria-label={isBusy ? "DB更新中..." : "DB最新化"}
+                        >
+                            <ResetIcon className="h-4 w-4 shrink-0" />
+                            <span
+                                className={`overflow-hidden whitespace-nowrap transition-[opacity,width] duration-200 ${
+                                    collapsed
+                                        ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
+                                        : "w-auto opacity-100"
                                 }`}
-                                title={isBusy ? "DB更新中..." : "DB最新化"}
-                                aria-label={isBusy ? "DB更新中..." : "DB最新化"}
                             >
-                                <ResetIcon className="h-4 w-4 shrink-0" />
-                                <span
-                                    className={`overflow-hidden whitespace-nowrap transition-[opacity,width] duration-200 ${
-                                        collapsed
-                                            ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
-                                            : "w-auto opacity-100"
-                                    }`}
-                                >
-                                    {isBusy ? "更新中..." : "DB最新化"}
-                                </span>
-                            </button>
-                        ) : null}
+                                {isBusy ? "更新中..." : "DB最新化"}
+                            </span>
+                        </button>
                     </div>
                 ) : null}
             </div>
         </aside>
-    );
-}
-
-function BirthdaySidebarButton({
-    collapsed,
-    onClick,
-}: {
-    collapsed: boolean;
-    onClick: () => void;
-}) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`flex h-10 w-full items-center rounded-none text-sm font-bold text-red-700 transition-colors hover:bg-red-50 ${
-                collapsed
-                    ? "justify-center px-0 2xl:justify-start 2xl:gap-3 2xl:px-2"
-                    : "justify-start gap-3 px-2"
-            }`}
-            title="大切なお知らせ"
-            aria-label={collapsed ? "大切なお知らせ" : undefined}
-        >
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center border-2 border-red-600 bg-red-600 text-white">
-                <BellIcon className="h-4 w-4 shrink-0" />
-            </span>
-            <span
-                className={`overflow-hidden whitespace-nowrap text-left transition-[opacity,width] duration-200 ${
-                    collapsed
-                        ? "w-0 opacity-0 2xl:w-auto 2xl:opacity-100"
-                        : "w-auto opacity-100"
-                }`}
-            >
-                大切なお知らせ
-            </span>
-        </button>
     );
 }
 

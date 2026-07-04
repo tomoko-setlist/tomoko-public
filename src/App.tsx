@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { BirthdayCelebrationModal, DetailRouteContent, InitialSyncOverlay } from "./components/app";
+import { DetailRouteContent, InitialSyncOverlay } from "./components/app";
 import {
     SearchDesktopHeader,
     SearchMobileNav,
@@ -50,7 +50,6 @@ function App() {
     const adminEnabled = privateFeatureRegistry.admin.isEnabled();
     const statsEnabled = privateFeatureRegistry.stats.isEnabled();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [birthdayForced, setBirthdayForced] = useState(false);
     const [routeTitles, setRouteTitles] = useState<Record<string, string>>({});
     const hasSeenInitialOverlay = readInitialOverlaySeen();
     const { route, history, navigate, navigateToHistoryRoute } = useAppRoute();
@@ -92,7 +91,6 @@ function App() {
         onOpenReleases: () => navigate({ name: "releases" }),
         onOpenAdmin: () => navigate({ name: "admin" }),
         onOpenStats: () => navigate({ name: "stats" }),
-        onOpenBirthday: () => setBirthdayForced(true),
         onRefreshDb: () => {
             void refreshDb();
         },
@@ -234,11 +232,6 @@ function App() {
                 progressFileName={dbState.progressFileName ?? ""}
                 progressTotalBytes={dbState.progressTotalBytes}
                 progressLoadedBytes={dbState.progressLoadedBytes}
-            />
-            <BirthdayCelebrationModal
-                key={birthdayForced ? "forced" : "auto"}
-                forceShow={birthdayForced}
-                onClose={() => setBirthdayForced(false)}
             />
         </div>
     );

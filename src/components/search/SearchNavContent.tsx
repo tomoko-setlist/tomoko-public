@@ -39,7 +39,7 @@ export type SearchNavState = {
 };
 
 export type SearchNavSection = {
-    key: "primary" | "tools" | "support" | "system";
+    key: "primary" | "tools" | "support" | "about-site" | "system";
     title: string;
     items: SearchNavKey[];
 };
@@ -111,7 +111,7 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
     releases: {
         key: "releases",
         label: "更新情報",
-        description: "記事・お知らせ・データ登録状況",
+        description: "お知らせ・データ登録状況",
         renderIcon: (className) => <BellIcon className={className} />,
         hasAnnouncementBadge: true,
     },
@@ -123,8 +123,8 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
     },
     about: {
         key: "about",
-        label: "About",
-        description: "ToMoKoについて・お問い合わせ",
+        label: "ToMoKoって？",
+        description: "ToMoKoについて",
         renderIcon: (className) => (
             <span
                 className={`${className} shrink-0 bg-current`}
@@ -154,8 +154,13 @@ const BASE_SEARCH_NAV_SECTIONS: SearchNavSection[] = [
     },
     {
         key: "support",
-        title: "About",
-        items: ["releases", "about"],
+        title: "情報",
+        items: ["releases", "articles"],
+    },
+    {
+        key: "about-site",
+        title: "その他",
+        items: ["about", "contact"],
     },
     {
         key: "system",
@@ -219,11 +224,11 @@ export function isSearchNavItemActive(
         case "articles":
             return Boolean(state.isArticles);
         case "releases":
-            return state.isReleases || Boolean(state.isArticles);
+            return state.isReleases;
         case "contact":
             return state.isContact;
         case "about":
-            return state.isAbout || state.isContact;
+            return state.isAbout;
         case "admin":
             return state.isAdmin;
         default:
