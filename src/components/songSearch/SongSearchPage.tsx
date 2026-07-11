@@ -10,6 +10,7 @@ import {
 } from "../../lib/constants/searchDefaults";
 import { STORAGE_FLAG_OFF, STORAGE_FLAG_ON } from "../../lib/constants/stateFlags";
 import { DB_REFRESH_EVENT } from "../../lib/dbRefreshEvent";
+import { recordSongSearchAnalytics } from "../../lib/searchAnalytics";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { AutocompleteTextInput } from "../search/AutocompleteTextInput";
 import { FloatingEditButton } from "../search/FloatingEditButton";
@@ -350,6 +351,7 @@ export function SongSearchPage({
       const cached = loadSongSearchCache(requestKey);
       if (cached) {
         setResult(cached);
+        recordSongSearchAnalytics(request, cached);
         setLoading(false);
         return;
       }
@@ -359,6 +361,7 @@ export function SongSearchPage({
         if (!cancelled) {
           setResult(next);
           saveSongSearchCache(requestKey, next);
+          recordSongSearchAnalytics(request, next);
         }
       } catch (e) {
         if (!cancelled) {

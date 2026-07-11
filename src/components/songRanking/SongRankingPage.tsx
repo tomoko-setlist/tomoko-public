@@ -7,6 +7,7 @@ import {
 } from "../../lib/constants/searchDefaults";
 import { DB_REFRESH_EVENT } from "../../lib/dbRefreshEvent";
 import { sortEventTagsByPriority } from "../../lib/eventTagPriority";
+import { recordSongRankingAnalytics } from "../../lib/searchAnalytics";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { AutocompleteTextInput } from "../search/AutocompleteTextInput";
 import { ConditionExpressionPreview } from "../search/ConditionExpressionPreview";
@@ -659,6 +660,7 @@ export function SongRankingPage({ db, onOpenSong, onOpenArtist }: SongRankingPag
                 if (cancelled) return;
                 setResult(next);
                 setPageInput(String(next.page));
+                recordSongRankingAnalytics(request, next);
             } catch (e) {
                 if (cancelled) return;
                 setError(e instanceof Error ? e.message : String(e));

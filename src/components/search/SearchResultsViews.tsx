@@ -206,6 +206,10 @@ function isStageCancelled(row: SearchResultRow): boolean {
     return row.cancelled === true;
 }
 
+function isEventCancelled(stages: SearchResultRow[]): boolean {
+    return stages.length > 1 && stages.every(isStageCancelled);
+}
+
 function toSubmissionTarget(row: SearchResultRow): SetlistSubmissionTarget {
     return {
         stageId: row.row_id,
@@ -231,6 +235,17 @@ function getRegisteredSetlistStageCount(stages: SearchResultRow[]): number {
 function CancelledStageBadge() {
     return (
         <span className="inline-flex min-w-[2.5rem] items-center justify-center whitespace-nowrap border-2 border-red-700 bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white shadow-[1px_1px_0_rgba(127,29,29,0.55)]">
+            中止
+        </span>
+    );
+}
+
+function CancelledEventBadge() {
+    return (
+        <span
+            aria-label="イベント中止"
+            className="inline-flex min-w-[2.5rem] items-center justify-center whitespace-nowrap border-2 border-red-700 bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white shadow-[1px_1px_0_rgba(127,29,29,0.55)]"
+        >
             中止
         </span>
     );
@@ -568,6 +583,7 @@ export function SearchResultsDesktopTable({
                               const registeredSetlistStageCount =
                                   getRegisteredSetlistStageCount(group.stages);
                               const countableStageCount = getCountableStageCount(group.stages);
+                              const eventCancelled = isEventCancelled(group.stages);
                               const headerRow = (
                                   <tr
                                       key={`stage-group-header-${group.eventId}`}
@@ -603,6 +619,7 @@ export function SearchResultsDesktopTable({
                                               >
                                                   {group.eventName}
                                               </ResultLinkButton>
+                                              {eventCancelled ? <CancelledEventBadge /> : null}
                                               <span className="text-xs font-normal text-slate-600">
                                                   （{countableStageCount}公演）
                                               </span>
@@ -877,6 +894,7 @@ export function SearchResultsCards({
                       const registeredSetlistStageCount =
                           getRegisteredSetlistStageCount(group.stages);
                       const countableStageCount = getCountableStageCount(group.stages);
+                      const eventCancelled = isEventCancelled(group.stages);
                       const dateLabel = formatStageGroupDate(group.stages);
                       const patternLabel = formatStageGroupPattern(group.stages);
                       const venueLabel = formatStageGroupVenue(group.stages);
@@ -902,6 +920,11 @@ export function SearchResultsCards({
                                   >
                                       {group.eventName}
                                   </ResultLinkButton>
+                                  {eventCancelled ? (
+                                      <div className="mt-1">
+                                          <CancelledEventBadge />
+                                      </div>
+                                  ) : null}
                               </div>
                               <button
                                   type="button"

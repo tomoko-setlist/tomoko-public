@@ -2,7 +2,7 @@ import type { AppRoute } from "./appRoute";
 
 export const INITIAL_DETAIL_DATA_SCRIPT_ID = "tomoko-initial-detail";
 
-export type InitialDetailRouteName = "song" | "event" | "member";
+export type InitialDetailRouteName = "song" | "event" | "member" | "group";
 
 export type InitialDetailDataItem = {
     label: string;
@@ -58,7 +58,12 @@ const asLinks = (value: unknown): InitialDetailDataLink[] => {
 export function parseInitialDetailData(value: unknown): InitialDetailData | null {
     if (!isRecord(value) || !isRecord(value.route)) return null;
     const routeName = value.route.name;
-    if (routeName !== "song" && routeName !== "event" && routeName !== "member") {
+    if (
+        routeName !== "song" &&
+        routeName !== "event" &&
+        routeName !== "member" &&
+        routeName !== "group"
+    ) {
         return null;
     }
     const id = Number(value.route.id);
@@ -81,7 +86,12 @@ export function parseInitialDetailData(value: unknown): InitialDetailData | null
 
 export function getInitialDetailDataForRoute(route: AppRoute): InitialDetailData | null {
     if (!("id" in route)) return null;
-    if (route.name !== "song" && route.name !== "event" && route.name !== "member") {
+    if (
+        route.name !== "song" &&
+        route.name !== "event" &&
+        route.name !== "member" &&
+        route.name !== "group"
+    ) {
         return null;
     }
     if (typeof document === "undefined") return null;

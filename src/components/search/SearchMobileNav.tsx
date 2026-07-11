@@ -16,6 +16,7 @@ type SearchMobileNavProps = {
     open: boolean;
     isSongSearch: boolean;
     isSongRanking: boolean;
+    isCalendar?: boolean;
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
@@ -33,6 +34,7 @@ type SearchMobileNavProps = {
     onOpenHome: () => void;
     onOpenSongSearch: () => void;
     onOpenSongRanking: () => void;
+    onOpenCalendar?: () => void;
     onOpenMemberSearch: () => void;
     onOpenKrn: () => void;
     onOpenArticles: () => void;
@@ -48,6 +50,7 @@ export function SearchMobileNav({
     open,
     isSongSearch,
     isSongRanking,
+    isCalendar = false,
     isMemberSearch,
     isKrn,
     isAbout,
@@ -65,6 +68,7 @@ export function SearchMobileNav({
     onOpenHome,
     onOpenSongSearch,
     onOpenSongRanking,
+    onOpenCalendar,
     onOpenMemberSearch,
     onOpenKrn,
     onOpenArticles,
@@ -79,9 +83,14 @@ export function SearchMobileNav({
     const unreadBadgeText =
         announcementUnreadCount > 99 ? "99+" : String(announcementUnreadCount);
     const navSections = getSearchNavSections(showAdmin, showStats);
+    const hasNewItem = navSections.some((section) =>
+        section.items.some((key) => getSearchNavItemConfig(key).isNew),
+    );
+    const hasHeaderNotification = hasNewItem || announcementUnreadCount > 0;
     const navState: SearchNavState = {
         isSongSearch,
         isSongRanking,
+        isCalendar,
         isMemberSearch,
         isKrn,
         isAbout,
@@ -95,6 +104,7 @@ export function SearchMobileNav({
         home: onOpenHome,
         song: onOpenSongSearch,
         ranking: onOpenSongRanking,
+        calendar: onOpenCalendar ?? (() => undefined),
         member: onOpenMemberSearch,
         krn: onOpenKrn,
         articles: onOpenArticles,
@@ -112,11 +122,14 @@ export function SearchMobileNav({
                     <button
                         type="button"
                         onClick={onOpen}
-                        className="inline-flex h-9 w-9 items-center justify-center text-slate-700 hover:bg-slate-100"
+                        className="relative inline-flex h-9 w-9 items-center justify-center text-slate-700 hover:bg-slate-100"
                         aria-label="メニューを開く"
                         title="メニューを開く"
                     >
                         <MenuIcon className="h-5 w-5" />
+                        {hasHeaderNotification ? (
+                            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-rose-500 ring-1 ring-white" />
+                        ) : null}
                     </button>
                     <button
                         type="button"
@@ -255,7 +268,14 @@ function MobileNavButton({
                     </span>
                 ) : null}
             </span>
-            <span>{item.label}</span>
+            <span>
+                {item.label}
+                {item.isNew ? (
+                    <span className="ml-1.5 inline-flex h-4 items-center bg-rose-500 px-1 text-[9px] font-black leading-none text-white">
+                        NEW
+                    </span>
+                ) : null}
+            </span>
         </button>
     );
 }

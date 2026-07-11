@@ -1,186 +1,186 @@
 {
-  "generatedAt": "2026-07-04T04:02:54.792Z",
-  "signature": "0b51f7d9a72a51ea2712dd88c77760516604260b100e40e605b8212e260c0f40",
+  "generatedAt": "2026-07-11T03:26:13.881Z",
+  "signature": "ca9d8e0891bfacf765ff4858c3b91d12595310c30854d66f08e57066ece8f346",
   "files": [
     {
       "fileName": "album_tracks.parquet",
       "sizeBytes": 143648,
-      "mtimeMs": 1783137774233.6768,
+      "mtimeMs": 1783740373427.523,
       "sha256": "2ad3eccb8c6250c3a035a440c4a9fcaa7a53130a314c645376f1775f45556aad"
     },
     {
       "fileName": "albums.parquet",
-      "sizeBytes": 40518,
-      "mtimeMs": 1783137774066.5432,
-      "sha256": "d42624874821c07484f95cd8f0632ad01d0a958bc1a944660268ac01ab495e7d"
+      "sizeBytes": 40517,
+      "mtimeMs": 1783740373344.4353,
+      "sha256": "b461b8dc0b69a42951118705d78d8866aeffb0777fea534d6862c1a3855a3018"
     },
     {
       "fileName": "artist_profiles.parquet",
-      "sizeBytes": 17706,
-      "mtimeMs": 1783137774287.9395,
-      "sha256": "0a8df8826cd0e278c49ee5549f4a57410c45799e3e2e79a1e3d3fb710cad3384"
+      "sizeBytes": 17720,
+      "mtimeMs": 1783740373506.904,
+      "sha256": "0c081fd0e26438f9f7dc39f8279a7f06588c2f0c4fae1daa159507974c75ff34"
     },
     {
       "fileName": "creator_profiles.parquet",
       "sizeBytes": 19019,
-      "mtimeMs": 1783137774312.0713,
+      "mtimeMs": 1783740373537.1055,
       "sha256": "656f67d0eddf85602a6ce4919a30a85c4084c7dc15bd57a722e5bbc0b5e654aa"
     },
     {
       "fileName": "event_performer_persons.parquet",
-      "sizeBytes": 130463,
-      "mtimeMs": 1783137768716.8013,
-      "sha256": "4896b262e0dba03fd255976e5d1dee13eef651bdb43d08370c03b348dc2787ea"
+      "sizeBytes": 130863,
+      "mtimeMs": 1783740370277.337,
+      "sha256": "1a8ece7db740268ae90c9761015d7e4b4231bef7b09d6da6bc323bd6b6b968f7"
     },
     {
       "fileName": "event_performers.parquet",
-      "sizeBytes": 120930,
-      "mtimeMs": 1783137765809.7847,
-      "sha256": "b2c7fb494caf866561c6f5c7e0a859387fe219368808b17343f59314a9b47615"
+      "sizeBytes": 120844,
+      "mtimeMs": 1783740368803.3054,
+      "sha256": "bf98bb406d855a2b5e5f59f1326fa36dcd9f6771673e500413e5ad53f9e530a8"
     },
     {
       "fileName": "event_tags.parquet",
       "sizeBytes": 799,
-      "mtimeMs": 1783137774240.3628,
+      "mtimeMs": 1783740373438.96,
       "sha256": "d89b76dd8688001e3d5a129a34f06d8c7f1a12a6782500d2a11d77afe21d5a8f"
     },
     {
       "fileName": "events.parquet",
-      "sizeBytes": 86655,
-      "mtimeMs": 1783137755802.5012,
-      "sha256": "a5e7f92992bb40fd77d6017c606b6aee0ba2a5e9df092f259721293437423b9d"
+      "sizeBytes": 86693,
+      "mtimeMs": 1783740361943.6187,
+      "sha256": "1e54aa0bfcd9bc781ba5cbd1f0216ad35e352b964a4cba7ed4d0d05cff3d289a"
     },
     {
       "fileName": "group_aliases.parquet",
-      "sizeBytes": 1636,
-      "mtimeMs": 1783137774452.7485,
-      "sha256": "b02ce74966ca3d5fe5f5740425c0ae141eb7eed4766a70493d12b0e9d25640bd"
+      "sizeBytes": 1615,
+      "mtimeMs": 1783740373611.3872,
+      "sha256": "07e56f0e87dc3f0da93d5b2417ce142c9ee1663e6ec57e66cf5a972816c95393"
     },
     {
       "fileName": "group_memberships.parquet",
-      "sizeBytes": 15103,
-      "mtimeMs": 1783137774426.2212,
-      "sha256": "98a7349c424de3aa29aa8f0eca83baa9e11dcf61fe23008622e4bf8117e6217a"
+      "sizeBytes": 15115,
+      "mtimeMs": 1783740373589.9639,
+      "sha256": "87e6d689d59bdd81fb969d2eca40a5c5d6d1174a85a247152eff954cbfbe2d25"
     },
     {
       "fileName": "group_roles.parquet",
-      "sizeBytes": 2159,
-      "mtimeMs": 1783137774436.0781,
-      "sha256": "aa89e3c418c0db15e21389380ddd33926eb30c173ee8d9b7aa3afda6f306cb77"
+      "sizeBytes": 2170,
+      "mtimeMs": 1783740373599.855,
+      "sha256": "2787e7961d7805606289d8c595cfdd8087e3b7a01ebc6ea084b966b355a13bd1"
     },
     {
       "fileName": "groups.parquet",
       "sizeBytes": 3013,
-      "mtimeMs": 1783137774404.885,
+      "mtimeMs": 1783740373576.1409,
       "sha256": "82a52c474b7a44c096b4d69b7c23ff152a592a00023e6d1218f6fdd337da0b49"
     },
     {
       "fileName": "member_colors.parquet",
-      "sizeBytes": 5084,
-      "mtimeMs": 1783137774593.7485,
-      "sha256": "52dbc2dc32fe476c5a7d09c10bbc0c2565312c641c0b1aca772352a4d1a4d94c"
+      "sizeBytes": 5182,
+      "mtimeMs": 1783740373723.8757,
+      "sha256": "7dc2f7a5f1a9e316619ce8e6846b39636e4cee02ff14041b47b1c755b74d5092"
     },
     {
       "fileName": "member_profiles.parquet",
       "sizeBytes": 12920,
-      "mtimeMs": 1783137774582.3345,
+      "mtimeMs": 1783740373708.991,
       "sha256": "219cd89b8acc6dd17e52635c83db4f43b0ab3e348fdc9dde33acff3119f28e69"
     },
     {
       "fileName": "member_search_index.parquet",
-      "sizeBytes": 23546,
-      "mtimeMs": 1783137774730.3918,
-      "sha256": "0fee8b607bc36788bc6a220d9763dd72c3e5054643233b41f1bd894f0a98d2ca"
+      "sizeBytes": 23575,
+      "mtimeMs": 1783740373834.961,
+      "sha256": "40d4b11c7b540ad4b3f91bbae8832d5ca200efccdccd7834d82b67d7f4864447"
     },
     {
       "fileName": "persons.parquet",
       "sizeBytes": 18066,
-      "mtimeMs": 1783137774371.954,
+      "mtimeMs": 1783740373570.3013,
       "sha256": "99793bc99ba4999c83fa7576d14b76b9934850d4a2fb38b0253ef9a9943ef161"
     },
     {
       "fileName": "prefectures.parquet",
       "sizeBytes": 842,
-      "mtimeMs": 1783137774246.3477,
+      "mtimeMs": 1783740373448.5608,
       "sha256": "a078efd992491f354522a593182c57962a5e0c52912cfcb6f19605193f9b1d37"
     },
     {
       "fileName": "release_db_changes.parquet",
-      "sizeBytes": 2241,
-      "mtimeMs": 1783137774766.382,
-      "sha256": "d42b588b3b1bb6508336743ff5f41aa54f5ad52af8475b708edebd93ef356b16"
+      "sizeBytes": 2306,
+      "mtimeMs": 1783740373859.1772,
+      "sha256": "ef1f7cb53b830e462561918d50effd783a64966bc16b61f15a26b85b9997e439"
     },
     {
       "fileName": "release_notes.parquet",
-      "sizeBytes": 7886,
-      "mtimeMs": 1783137774755.0557,
-      "sha256": "e3880547364403f8dc09dd635906e0ed6db4149107511dfba6f23c93c51625b3"
+      "sizeBytes": 8362,
+      "mtimeMs": 1783740373850.9836,
+      "sha256": "963c5381e6cf55a5c71c444075e0edd437a8961bd3ab2732fbf6c4414282e231"
     },
     {
       "fileName": "search_aliases.parquet",
       "sizeBytes": 74219,
-      "mtimeMs": 1783137774564.4492,
+      "mtimeMs": 1783740373695.0686,
       "sha256": "90c025d5ea2670d604e0081f785eb9e5d5cd2f2eff44df577cce94573fbb9dcb"
     },
     {
       "fileName": "setlist_entry_performers.parquet",
-      "sizeBytes": 234099,
-      "mtimeMs": 1783137764446.6194,
-      "sha256": "1e595c6ac8c821a1f14cdd0a4b009a02b692cd153fe79f0c165dd803c5d9105d"
+      "sizeBytes": 229477,
+      "mtimeMs": 1783740368466.249,
+      "sha256": "68289f1eb79d7fc06cd53fcfc8019e0afa40fc4cce5d8929615cb9ac322576e8"
     },
     {
       "fileName": "setlists.parquet",
-      "sizeBytes": 1469488,
-      "mtimeMs": 1783137761550.6072,
-      "sha256": "7182d3c9b58184fe8835267e5151dff349219d705a823bbc8d872bafbd375e41"
+      "sizeBytes": 1501534,
+      "mtimeMs": 1783740366862.9326,
+      "sha256": "58e2ef52d8a0a60f94e9b6bc439de1111127bacb79d2b600031f32795bbbf21b"
     },
     {
       "fileName": "song_metrics.parquet",
-      "sizeBytes": 18624,
-      "mtimeMs": 1783137773901.5664,
-      "sha256": "c656fba3f97af2b616b18380166bb3d9bd4e3bab95d4d1aaa21b594ac53b7c23"
+      "sizeBytes": 18659,
+      "mtimeMs": 1783740373259.558,
+      "sha256": "0381bf4d4270b90981bc0e6d267981e2059618b363c902bc490bcdf2c949a90b"
     },
     {
       "fileName": "song_versions.parquet",
       "sizeBytes": 168008,
-      "mtimeMs": 1783137774034.88,
+      "mtimeMs": 1783740373324.6638,
       "sha256": "9272781def309b7e2705079ccb21aeb6dba46df9738bcbd9cbcc23af70672c7c"
     },
     {
       "fileName": "songs.parquet",
-      "sizeBytes": 130252,
-      "mtimeMs": 1783137772422.3406,
-      "sha256": "74007701fc93d494380e8a99c455a288c291a1b22fa296c8561a1ee504119f08"
+      "sizeBytes": 131135,
+      "mtimeMs": 1783740372158.1306,
+      "sha256": "50b078683826202ec6a22c1f434b2327aa605d10c5b0388da43ebb65c1a7969c"
     },
     {
       "fileName": "stage_performer_persons.parquet",
-      "sizeBytes": 419634,
-      "mtimeMs": 1783137771448.7173,
-      "sha256": "457854149021d83053baf182401aabc2a0d30eb227c0929d2fd373de9662f5e2"
+      "sizeBytes": 424596,
+      "mtimeMs": 1783740371603.5151,
+      "sha256": "a1798de16139bd9c50fed09c3c17a266c12c99c7475da273e6cc3817fae85a35"
     },
     {
       "fileName": "stage_performers.parquet",
-      "sizeBytes": 326339,
-      "mtimeMs": 1783137768039.3093,
-      "sha256": "2332b80f2fa4c28f3372f1d01347591927fb9f0e7465f767eb96833840e23554"
+      "sizeBytes": 326506,
+      "mtimeMs": 1783740369929.1357,
+      "sha256": "6fdf5b885628ab7af246e748255eb3cade11b43235ef1012dca30e864d6bf064"
     },
     {
       "fileName": "stages.parquet",
-      "sizeBytes": 227190,
-      "mtimeMs": 1783137755991.9614,
-      "sha256": "67d28b8b086a547bc14b48fa00a5e4ea87d68e06cb969a51f230a903fb0bf79b"
+      "sizeBytes": 227397,
+      "mtimeMs": 1783740362134.7913,
+      "sha256": "8f5791603d85c3f18f2aa3715d4e66aade5f80109bd95ddacce58f5f942eae18"
     },
     {
       "fileName": "venue_name_histories.parquet",
       "sizeBytes": 19457,
-      "mtimeMs": 1783137774475.0068,
+      "mtimeMs": 1783740373625.3184,
       "sha256": "850db014d29df2352579c805fa554b84c0a34a787f500a0331b6d786809b4b9c"
     },
     {
       "fileName": "venues.parquet",
-      "sizeBytes": 25362,
-      "mtimeMs": 1783137774263.7468,
-      "sha256": "3c368101716aff9ac16c6c94900c1a4f5eae60535201eae7e6aa6998e15af358"
+      "sizeBytes": 25377,
+      "mtimeMs": 1783740373471.6697,
+      "sha256": "cca6136b33fba487a9c9c9f6425ea64ad2bdde1e83420143f5bd80b4c065f3b8"
     }
   ]
 }

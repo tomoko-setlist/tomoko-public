@@ -18,6 +18,7 @@ const resolveRouteLabel = (
     if (route.name === "home") return "セトリ検索";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
+    if (route.name === "calendar") return "カレンダー";
     if (route.name === "stats") return "統計アシスタント";
     if (route.name === "member-search") return "メンバー検索";
     if (route.name === "articles") return "記事";
@@ -53,6 +54,9 @@ const resolveRouteDescription = (
     if (route.name === "song-ranking") {
         return "ハロプロ楽曲の歌唱回数ランキングを確認できます。";
     }
+    if (route.name === "calendar") {
+        return "ハロプロのイベント開催日程をカレンダーで確認できます。";
+    }
     if (route.name === "stats") {
         return "自然言語でハロプロのセットリスト統計を集計する実験ページです。";
     }
@@ -68,6 +72,7 @@ const resolveRouteDescription = (
     if (route.name === "releases") return "ToMoKoの登録データ、お知らせ、更新履歴を確認できます。";
     if (route.name === "krn") return "セトリ投稿お助けサービス KRN の入力・確認ページです。";
     if (route.name === "admin") return "管理者向け編集ページです。";
+    if (route.name === "group") return `${routeLabel} のグループ詳細ページです。`;
     return `${routeLabel} の詳細ページです。`;
 };
 
@@ -77,6 +82,11 @@ export type PageMeta = {
     canonicalUrl: string;
     robots: string;
     ogType: "website" | "article";
+};
+
+const buildTitleLabel = (route: AppRoute, routeLabel: string): string => {
+    if (route.name === "group") return `${routeLabel} グループ詳細`;
+    return routeLabel;
 };
 
 export const buildPageMeta = ({
@@ -94,10 +104,11 @@ export const buildPageMeta = ({
     const canonicalUrl = `${safeOrigin}${buildPathRoute(route)}`;
     const isAdmin = route.name === "admin";
     const isHiddenPoc = route.name === "stats";
+    const titleLabel = buildTitleLabel(route, routeLabel);
     const title =
         route.name === "home"
             ? DEFAULT_HOME_TITLE
-            : `${routeLabel} | ${DEFAULT_SITE_NAME}`;
+            : `${titleLabel} | ${DEFAULT_SITE_NAME}`;
 
     return {
         title,
@@ -108,6 +119,7 @@ export const buildPageMeta = ({
             route.name === "home" ||
             route.name === "song-search" ||
             route.name === "song-ranking" ||
+            route.name === "calendar" ||
             route.name === "stats" ||
             route.name === "member-search" ||
             route.name === "articles" ||

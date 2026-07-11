@@ -1,6 +1,8 @@
+import { isFeatureNew } from "../../lib/newFeatureState";
 import {
     BarChartHorizontalIcon,
     BellIcon,
+    CalendarIcon,
     EditIcon,
     MailIcon,
     MusicIcon,
@@ -10,12 +12,14 @@ import {
     UserIcon,
 } from "../ui";
 
+
 import type { JSX } from "react";
 
 export type SearchNavKey =
     | "home"
     | "song"
     | "ranking"
+    | "calendar"
     | "stats"
     | "member"
     | "krn"
@@ -28,6 +32,7 @@ export type SearchNavKey =
 export type SearchNavState = {
     isSongSearch: boolean;
     isSongRanking: boolean;
+    isCalendar?: boolean;
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
@@ -50,6 +55,7 @@ export type SearchNavItemConfig = {
     description: string;
     renderIcon: (className: string) => JSX.Element;
     hasAnnouncementBadge?: boolean;
+    isNew?: boolean;
 };
 
 export type SearchNavActionMap = Record<SearchNavKey, () => void>;
@@ -83,6 +89,12 @@ const SEARCH_NAV_ITEM_CONFIG: Record<SearchNavKey, SearchNavItemConfig> = {
         label: "歌唱回数ランキング",
         description: "",
         renderIcon: (className) => <BarChartHorizontalIcon className={className} />,
+    },
+    calendar: {
+        key: "calendar",
+        label: "カレンダー",
+        description: "イベント開催日程",
+        renderIcon: (className) => <CalendarIcon className={className} />,
     },
     stats: {
         key: "stats",
@@ -150,7 +162,7 @@ const BASE_SEARCH_NAV_SECTIONS: SearchNavSection[] = [
     {
         key: "tools",
         title: "ツール",
-        items: ["krn"],
+        items: ["calendar", "krn"],
     },
     {
         key: "support",
@@ -179,7 +191,7 @@ export function getSearchNavSections(
               {
                   key: "tools" as const,
                   title: "ツール",
-                  items: ["stats" as const, "krn" as const],
+                  items: ["calendar" as const, "stats" as const, "krn" as const],
               },
               ...BASE_SEARCH_NAV_SECTIONS.slice(2),
           ]
@@ -190,7 +202,11 @@ export function getSearchNavSections(
 }
 
 export function getSearchNavItemConfig(key: SearchNavKey): SearchNavItemConfig {
-    return SEARCH_NAV_ITEM_CONFIG[key];
+    const config = SEARCH_NAV_ITEM_CONFIG[key];
+    if (key === "calendar") {
+        return { ...config, isNew: isFeatureNew("calendar") };
+    }
+    return config;
 }
 
 export function isSearchNavItemActive(
@@ -202,6 +218,7 @@ export function isSearchNavItemActive(
             return (
                 !state.isSongSearch &&
                 !state.isSongRanking &&
+                !state.isCalendar &&
                 !state.isMemberSearch &&
                 !state.isKrn &&
                 !state.isAdmin &&
@@ -215,6 +232,8 @@ export function isSearchNavItemActive(
             return state.isSongSearch && !state.isSongRanking && !state.isMemberSearch && !state.isAdmin;
         case "ranking":
             return state.isSongRanking && !state.isMemberSearch && !state.isAdmin;
+        case "calendar":
+            return Boolean(state.isCalendar);
         case "stats":
             return Boolean(state.isStats);
         case "member":

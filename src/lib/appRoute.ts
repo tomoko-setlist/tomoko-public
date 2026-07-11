@@ -7,6 +7,7 @@ export type AppRoute =
   | { name: "releases" }
   | { name: "song-search" }
   | { name: "song-ranking" }
+  | { name: "calendar" }
   | { name: "stats" }
   | { name: "admin" }
   | { name: "member-search" }
@@ -53,6 +54,7 @@ const parseNamedRoute = (name: string | undefined, idRaw?: string, slugRaw?: str
   }
   if (name === "song-search") return { name: "song-search" }
   if (name === "song-ranking") return { name: "song-ranking" }
+  if (name === "calendar") return { name: "calendar" }
   if (name === "stats") return { name: "stats" }
   if (name === "krn") return { name: "krn" }
   if (name === "about") return { name: "about" }
@@ -131,6 +133,7 @@ export const buildPathRoute = (route: AppRoute): string => {
   if (route.name === "releases") return "/releases"
   if (route.name === "song-search") return "/song-search"
   if (route.name === "song-ranking") return "/song-ranking"
+  if (route.name === "calendar") return "/calendar"
   if (route.name === "stats") return "/stats"
   if (route.name === "admin") return "/admin"
   if (route.name === "member-search") return "/member-search"

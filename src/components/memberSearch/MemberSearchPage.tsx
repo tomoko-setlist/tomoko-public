@@ -26,6 +26,7 @@ import {
     saveMemberStateToStorage,
 } from "../../lib/memberSearchState";
 import { getMemberStatusLabel } from "../../lib/memberStatus";
+import { recordMemberSearchAnalytics } from "../../lib/searchAnalytics";
 import { formatDateYmd } from "../../lib/uiFormat";
 import { AutocompleteTextInput } from "../search/AutocompleteTextInput";
 import { FloatingEditButton } from "../search/FloatingEditButton";
@@ -352,6 +353,7 @@ export function MemberSearchPage({ db, onOpenMember, onOpenGroup }: MemberSearch
                 if (!cancelled) {
                     setResult(next);
                     setPageInput(String(next.page));
+                    recordMemberSearchAnalytics(request, next);
                 }
             } catch (e) {
                 if (!cancelled) {

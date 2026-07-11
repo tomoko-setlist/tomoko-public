@@ -6,6 +6,7 @@ export type SearchRoute = Extract<
     | { name: "krn" }
     | { name: "song-search" }
     | { name: "song-ranking" }
+    | { name: "calendar" }
     | { name: "stats" }
     | { name: "member-search" }
     | { name: "articles" }
@@ -23,6 +24,7 @@ export type DetailRoute = Exclude<
     | { name: "releases" }
     | { name: "song-search" }
     | { name: "song-ranking" }
+    | { name: "calendar" }
     | { name: "stats" }
     | { name: "member-search" }
     | { name: "admin" }
@@ -38,6 +40,7 @@ export function isDetailRoute(route: AppRoute): route is DetailRoute {
         route.name !== "releases" &&
         route.name !== "song-search" &&
         route.name !== "song-ranking" &&
+        route.name !== "calendar" &&
         route.name !== "stats" &&
         route.name !== "member-search" &&
         route.name !== "admin"
@@ -50,6 +53,7 @@ export function isSearchRoute(route: AppRoute): route is SearchRoute {
         route.name === "krn" ||
         route.name === "song-search" ||
         route.name === "song-ranking" ||
+        route.name === "calendar" ||
         route.name === "stats" ||
         route.name === "member-search" ||
         route.name === "articles" ||
@@ -124,6 +128,7 @@ export function routeLabel(
     if (route.name === "articles") return "記事";
     if (route.name === "song-search") return "楽曲検索";
     if (route.name === "song-ranking") return "歌唱回数ランキング";
+    if (route.name === "calendar") return "カレンダー";
     if (route.name === "releases") return "更新情報";
     if (route.name === "stats") return "統計アシスタント";
     if (route.name === "admin") return "管理画面";

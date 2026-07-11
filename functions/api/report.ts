@@ -35,42 +35,6 @@ const MAX_REPORTS_PER_DAY = 80;
 const ROUTE_NAME_PATTERN = /^[a-z0-9_-]+$/i;
 const REPORT_TYPES = new Set(["correction", "missing_info", "request", "other"]);
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REPORT_SCHEMA_STATEMENTS = [
-    `CREATE TABLE IF NOT EXISTS report_messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      created_at_ms INTEGER NOT NULL,
-      route_name TEXT NOT NULL,
-      route_id INTEGER,
-      page_url TEXT NOT NULL,
-      page_title TEXT,
-      message TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
-      status_updated_at_ms INTEGER,
-      handled_note TEXT,
-      report_type TEXT NOT NULL DEFAULT 'correction',
-      contact_name TEXT,
-      contact_email TEXT,
-      source_context TEXT,
-      github_issue_url TEXT,
-      ip TEXT,
-      user_agent TEXT,
-      referer TEXT
-    )`,
-    `CREATE INDEX IF NOT EXISTS idx_report_messages_created_at_ms
-      ON report_messages(created_at_ms DESC)`,
-    `CREATE INDEX IF NOT EXISTS idx_report_messages_route
-      ON report_messages(route_name, route_id, created_at_ms DESC)`,
-] as const;
-const REPORT_SCHEMA_COLUMN_STATEMENTS = [
-    `ALTER TABLE report_messages ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`,
-    `ALTER TABLE report_messages ADD COLUMN status_updated_at_ms INTEGER`,
-    `ALTER TABLE report_messages ADD COLUMN handled_note TEXT`,
-    `ALTER TABLE report_messages ADD COLUMN report_type TEXT NOT NULL DEFAULT 'correction'`,
-    `ALTER TABLE report_messages ADD COLUMN contact_name TEXT`,
-    `ALTER TABLE report_messages ADD COLUMN contact_email TEXT`,
-    `ALTER TABLE report_messages ADD COLUMN source_context TEXT`,
-    `ALTER TABLE report_messages ADD COLUMN github_issue_url TEXT`,
-] as const;
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const rejectedOrigin = rejectDisallowedOrigin(context.request);
@@ -206,14 +170,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return json({ ok: true, id: saved.id }, 200);
     } catch (error) {
         if (isMissingTableError(error) || isMissingColumnError(error)) {
-            try {
-                await ensureReportSchema(db);
-                const saved = await persistReport();
-                if (saved instanceof Response) return saved;
-                return json({ ok: true, id: saved.id }, 200);
-            } catch {
-                return json({ error: "受付DBの初期化が必要です。" }, 503);
-            }
+            return json(
+                { error: "受付DBのマイグレーション適用が必要です。" },
+                503,
+            );
         }
         return json({ error: "保存に失敗しました。" }, 500);
     }
@@ -245,22 +205,4 @@ const isMissingTableError = (error: unknown): boolean => {
 const isMissingColumnError = (error: unknown): boolean => {
     if (!(error instanceof Error)) return false;
     return /no column named|no such column/i.test(error.message);
-};
-
-const ensureReportSchema = async (db: D1Database): Promise<void> => {
-    for (const statement of REPORT_SCHEMA_STATEMENTS) {
-        await db.prepare(statement).run();
-    }
-    for (const statement of REPORT_SCHEMA_COLUMN_STATEMENTS) {
-        try {
-            await db.prepare(statement).run();
-        } catch (error) {
-            if (!isDuplicateColumnError(error)) throw error;
-        }
-    }
-};
-
-const isDuplicateColumnError = (error: unknown): boolean => {
-    if (!(error instanceof Error)) return false;
-    return /duplicate column name/i.test(error.message);
 };

@@ -69,13 +69,13 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [data, setData] = useState<DashboardData | null>(null);
-    const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
+    const [tip, setTip] = useState<{ text: string; x: number; y: number; containerW: number } | null>(null);
     const chartRef = useRef<HTMLDivElement>(null);
 
     const handlePointerMove = (e: React.PointerEvent, text: string) => {
         const rect = chartRef.current?.getBoundingClientRect();
         if (!rect) return;
-        setTip({ text, x: e.clientX - rect.left, y: e.clientY - rect.top });
+        setTip({ text, x: e.clientX - rect.left, y: e.clientY - rect.top, containerW: rect.width });
     };
 
     useEffect(() => {
@@ -338,9 +338,9 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
                 const RIGHT_X = SVG_W - SVG_PAD.right;
 
                 return (
-                <DetailPanel className="order-3 hidden p-4 md:block">
+                <DetailPanel className="order-3 p-3 md:p-4">
                     <div ref={chartRef} className="relative">
-                    <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+                    <div className="mb-2 flex flex-col gap-1 md:mb-3 md:flex-row md:items-end md:justify-between">
                         <div>
                             <h2 className="text-base font-bold text-neutral-950">データ推移</h2>
                             <p className="mt-0.5 text-xs text-neutral-500">
@@ -349,19 +349,19 @@ export function DashboardPage({ db, onResolveTitle, onOpenRelease, onOpenArticle
                         </div>
                     </div>
                     {tip ? (
-                        <div className="absolute z-10 pointer-events-none bg-gray-800 text-white text-xs px-2 py-1 rounded shadow whitespace-nowrap" style={{ left: tip.x + 10, top: tip.y - 24 }}>
+                        <div className="absolute z-10 pointer-events-none bg-gray-800 text-white text-xs px-2 py-1 rounded shadow whitespace-nowrap" style={tip.x > tip.containerW * 0.55 ? { right: tip.containerW - tip.x + 10, top: tip.y - 24 } : { left: tip.x + 10, top: tip.y - 24 }}>
                             {tip.text}
                         </div>
                     ) : null}
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                    <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 md:mb-3 md:gap-x-4">
                         {[...CHART_ENTITIES.map(e => ({ ...e, axis: "件数" })), ...COVERAGE_CHART.map(e => ({ label: e.label, color: e.color, axis: "%" }))].map((item) => (
-                            <span key={item.label} className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
+                            <span key={item.label} className="inline-flex items-center gap-1 text-[10px] text-slate-500 md:gap-1.5 md:text-[11px]">
                                 <span className="inline-block h-2 w-2 shrink-0 rounded-full border-[1.5px]" style={{ borderColor: item.color }} />
                                 {item.label} <span className="text-neutral-400">({item.axis})</span>
                             </span>
                         ))}
                     </div>
-                    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full" role="img" aria-label="データ推移グラフ">
+                    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="h-[220px] w-full md:h-auto" role="img" aria-label="データ推移グラフ">
                         {/* Left Y-axis (setlists count) */}
                         {yTicks().map((tick) => (
                             <g key={`yl-${tick}`}>

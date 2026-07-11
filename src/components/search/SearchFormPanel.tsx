@@ -9,7 +9,7 @@ import { SearchDetailActions } from './SearchDetailActions'
 import { useScrollVisibility } from '../../hooks/useScrollVisibility'
 import { recordSuggestionAnalytics } from '../../lib/searchAnalytics'
 import { DEFAULT_FIELD_SEARCH_METHODS } from '../../lib/setlistSearchDb/types'
-import { CalendarIcon, ChevronUpIcon, IndentDecreaseIcon, IndentIncreaseIcon, PlusIcon, SelectField, SetlistIcon, XIcon } from '../ui'
+import { ChevronUpIcon, IndentDecreaseIcon, IndentIncreaseIcon, PlusIcon, SelectField, SetlistIcon, StadiumIcon, XIcon } from '../ui'
 
 import type {
   AdvancedConditionField,
@@ -170,7 +170,7 @@ export function SearchFormPanel({
   }, [formCollapsed, searchUnit])
 
   const searchUnitIcons: Record<SearchUnit, ReactNode> = {
-    stage: <CalendarIcon className="h-4 w-4" />,
+    stage: <StadiumIcon className="h-4 w-4" />,
     setlist: <SetlistIcon className="h-4 w-4" />,
   }
   const queryPlaceholder =

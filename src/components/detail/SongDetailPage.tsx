@@ -27,7 +27,7 @@ import { toSafeNodeeUrl } from "../../shared/url/externalUrl"
 import { LinkTextButton } from "../ui"
 import { TagFilterChips } from "./TagFilterChips"
 
-import type { SetlistSearchDb } from "../../lib/setlistSearchDb/types"
+import type { SetlistSearchDb, SongVersionDetail } from "../../lib/setlistSearchDb/types"
 
 type SongDetailPageProps = {
   db: SetlistSearchDb
@@ -52,6 +52,7 @@ export function SongDetailPage({
   const [activeTab, setActiveTab] = useState<"list" | "analysis">("list")
   const { selectedAlbumCategory, setSelectedAlbumCategory, albumCategoryTabs, filteredAlbums } = useAlbumCategoryFilter(albums)
   const [selectedEventTags, setSelectedEventTags] = useState<string[]>([])
+  const isMobileVersionList = useDetailMobileViewport()
 
   useEffect(() => {
     if (song?.songName) {
@@ -297,110 +298,122 @@ export function SongDetailPage({
 
         {versions.length > 0 ? (
           <DetailPanel className="p-3 lg:p-3">
-            <h2 className="mb-2 text-base font-semibold text-slate-900">Version一覧</h2>
-            <p className="mb-2 text-xs text-slate-600">全{versions.length}件</p>
-            <DetailResponsiveTable
-            rows={versions}
-            rowKey={(row, index) => `${row.songVersionId ?? 0}-${row.versionName}-${index}`}
-            disablePagination={true}
-            disableSorting={true}
-            hideSummary={true}
-            mobileAsTable={true}
-            columns={[
-              {
-                key: "versionName",
-                header: "Version",
-                render: (row) => row.versionName,
-              },
-              {
-                key: "artist",
-                header: "アーティスト",
-                render: (row) =>
-                  row.artistId && row.artistName ? (
-                    <LinkTextButton onClick={() => onOpenArtist(row.artistId!)}>
-                      {row.artistName}
-                    </LinkTextButton>
-                  ) : (
-                    row.artistName || "-"
-                  ),
-              },
-              {
-                key: "lyricist",
-                header: "作詞",
-                render: (row) =>
-                  row.lyricistId !== null && row.lyricistName && onOpenCreator ? (
-                    <LinkTextButton onClick={() => onOpenCreator(row.lyricistId!)}>
-                      {row.lyricistName}
-                    </LinkTextButton>
-                  ) : (
-                    row.lyricistName || "-"
-                  ),
-              },
-              {
-                key: "composer",
-                header: "作曲",
-                render: (row) =>
-                  row.composerId !== null && row.composerName && onOpenCreator ? (
-                    <LinkTextButton onClick={() => onOpenCreator(row.composerId!)}>
-                      {row.composerName}
-                    </LinkTextButton>
-                  ) : (
-                    row.composerName || "-"
-                  ),
-              },
-              {
-                key: "arranger",
-                header: "編曲",
-                render: (row) =>
-                  row.arrangerId !== null && row.arrangerName && onOpenCreator ? (
-                    <LinkTextButton onClick={() => onOpenCreator(row.arrangerId!)}>
-                      {row.arrangerName}
-                    </LinkTextButton>
-                  ) : (
-                    row.arrangerName || "-"
-                  ),
-              },
-              {
-                key: "performanceCount",
-                header: "演奏",
-                render: (row) => row.performanceCount,
-              },
-              {
-                key: "albumTrackCount",
-                header: "収録",
-                render: (row) => row.albumTrackCount,
-              },
-              {
-                key: "streaming",
-                header: "",
-                render: (row) => {
-                  const safeNodeeUrl = toSafeNodeeUrl(row.nodeeUrl)
-                  return safeNodeeUrl ? (
-                    <a
-                      href={safeNodeeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="配信で再生"
-                      title="配信で再生"
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-none border border-gray-800 text-slate-800 hover:bg-slate-100"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </a>
-                  ) : (
-                    "-"
-                  )
-                },
-              },
-            ]}
-          />
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-slate-900">Version一覧</h2>
+              <span className="shrink-0 border border-slate-300 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                全{versions.length}件
+              </span>
+            </div>
+            {isMobileVersionList ? (
+              <SongVersionMobileList
+                versions={versions}
+                onOpenArtist={onOpenArtist}
+                onOpenCreator={onOpenCreator}
+              />
+            ) : (
+              <DetailResponsiveTable
+                rows={versions}
+                rowKey={(row, index) => `${row.songVersionId ?? 0}-${row.versionName}-${index}`}
+                disablePagination={true}
+                disableSorting={true}
+                hideSummary={true}
+                mobileAsTable={true}
+                columns={[
+                  {
+                    key: "versionName",
+                    header: "Version",
+                    render: (row) => row.versionName,
+                  },
+                  {
+                    key: "artist",
+                    header: "アーティスト",
+                    render: (row) =>
+                      row.artistId && row.artistName ? (
+                        <LinkTextButton onClick={() => onOpenArtist(row.artistId!)}>
+                          {row.artistName}
+                        </LinkTextButton>
+                      ) : (
+                        row.artistName || "-"
+                      ),
+                  },
+                  {
+                    key: "lyricist",
+                    header: "作詞",
+                    render: (row) =>
+                      row.lyricistId !== null && row.lyricistName && onOpenCreator ? (
+                        <LinkTextButton onClick={() => onOpenCreator(row.lyricistId!)}>
+                          {row.lyricistName}
+                        </LinkTextButton>
+                      ) : (
+                        row.lyricistName || "-"
+                      ),
+                  },
+                  {
+                    key: "composer",
+                    header: "作曲",
+                    render: (row) =>
+                      row.composerId !== null && row.composerName && onOpenCreator ? (
+                        <LinkTextButton onClick={() => onOpenCreator(row.composerId!)}>
+                          {row.composerName}
+                        </LinkTextButton>
+                      ) : (
+                        row.composerName || "-"
+                      ),
+                  },
+                  {
+                    key: "arranger",
+                    header: "編曲",
+                    render: (row) =>
+                      row.arrangerId !== null && row.arrangerName && onOpenCreator ? (
+                        <LinkTextButton onClick={() => onOpenCreator(row.arrangerId!)}>
+                          {row.arrangerName}
+                        </LinkTextButton>
+                      ) : (
+                        row.arrangerName || "-"
+                      ),
+                  },
+                  {
+                    key: "performanceCount",
+                    header: "演奏",
+                    render: (row) => row.performanceCount,
+                  },
+                  {
+                    key: "albumTrackCount",
+                    header: "収録",
+                    render: (row) => row.albumTrackCount,
+                  },
+                  {
+                    key: "streaming",
+                    header: "",
+                    render: (row) => {
+                      const safeNodeeUrl = toSafeNodeeUrl(row.nodeeUrl)
+                      return safeNodeeUrl ? (
+                        <a
+                          href={safeNodeeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="配信で再生"
+                          title="配信で再生"
+                          className="inline-flex h-6 w-6 items-center justify-center rounded-none border border-gray-800 text-slate-800 hover:bg-slate-100"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="h-3.5 w-3.5"
+                            aria-hidden="true"
+                          >
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </a>
+                      ) : (
+                        "-"
+                      )
+                    },
+                  },
+                ]}
+              />
+            )}
           </DetailPanel>
         ) : null}
 
@@ -680,4 +693,233 @@ export function SongDetailPage({
       ) : null}
     </div>
   )
+}
+
+function detectDetailMobileViewport(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(max-width: 767px)").matches
+  )
+}
+
+function useDetailMobileViewport(): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(() => detectDetailMobileViewport())
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return
+
+    const mediaQuery = window.matchMedia("(max-width: 767px)")
+    const update = () => setIsMobile(mediaQuery.matches)
+    update()
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", update)
+      return () => mediaQuery.removeEventListener("change", update)
+    }
+
+    mediaQuery.addListener(update)
+    return () => mediaQuery.removeListener(update)
+  }, [])
+
+  return isMobile
+}
+
+type SongVersionMobileListProps = {
+  versions: SongVersionDetail[]
+  onOpenArtist: (artistId: number) => void
+  onOpenCreator?: (creatorId: number) => void
+}
+
+function SongVersionMobileList({
+  versions,
+  onOpenArtist,
+  onOpenCreator,
+}: SongVersionMobileListProps) {
+  const [expandedKey, setExpandedKey] = useState<string | null>(null)
+
+  return (
+    <ul className="divide-y divide-slate-200 border-y border-slate-300">
+      {versions.map((version, index) => {
+        const rowKey = `${version.songVersionId ?? 0}-${version.versionName}-${index}`
+        const safeNodeeUrl = toSafeNodeeUrl(version.nodeeUrl)
+        const isExpanded = expandedKey === rowKey
+        const credits = getVersionCredits(version)
+
+        return (
+          <li key={rowKey} className="px-1 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold leading-5 tracking-tight text-slate-900">
+                  {version.versionName}
+                </p>
+                <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] leading-4 text-slate-500">
+                  {version.artistId && version.artistName ? (
+                    <LinkTextButton
+                      onClick={() => onOpenArtist(version.artistId!)}
+                      className="min-w-0 truncate text-left font-semibold text-blue-700"
+                    >
+                      {version.artistName}
+                    </LinkTextButton>
+                  ) : (
+                    <span className="min-w-0 truncate">{version.artistName || "-"}</span>
+                  )}
+                  <span className="shrink-0 border-l border-slate-300 pl-1.5">
+                    演奏 {version.performanceCount}
+                  </span>
+                  <span className="shrink-0">収録 {version.albumTrackCount}</span>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                {safeNodeeUrl ? (
+                  <a
+                    href={safeNodeeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="配信で再生"
+                    title="配信で再生"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-none border border-slate-400 bg-white text-slate-800 hover:border-gray-800 hover:bg-slate-100"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-3.5 w-3.5"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </a>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setExpandedKey(isExpanded ? null : rowKey)}
+                  aria-expanded={isExpanded}
+                  aria-label={`${isExpanded ? "Version詳細を閉じる" : "Version全文を表示"}: ${version.versionName}`}
+                  className="group inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <span
+                    className={`relative h-3.5 w-3.5 transition-transform duration-150 ${
+                      isExpanded ? "rotate-45" : ""
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-current" />
+                    <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-current" />
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {credits.length > 0 ? (
+              <div className="mt-2 flex gap-1 overflow-x-auto pb-0.5">
+                {credits.map((credit) => (
+                  <VersionCreditChip
+                    key={credit.label}
+                    label={credit.shortLabel}
+                    name={credit.name}
+                    creatorId={credit.creatorId}
+                    onOpenCreator={onOpenCreator}
+                  />
+                ))}
+              </div>
+            ) : null}
+
+            {isExpanded ? (
+              <dl className="mt-2 grid grid-cols-[56px_1fr] gap-x-2 gap-y-1 border-l-2 border-gray-800 bg-slate-50 px-2 py-2 text-xs leading-5">
+                <dt className="font-semibold text-slate-500">Version</dt>
+                <dd className="min-w-0 break-words text-slate-900">{version.versionName}</dd>
+                <dt className="font-semibold text-slate-500">Artist</dt>
+                <dd className="min-w-0 text-slate-900">
+                  {version.artistId && version.artistName ? (
+                    <LinkTextButton
+                      onClick={() => onOpenArtist(version.artistId!)}
+                      className="text-blue-700"
+                    >
+                      {version.artistName}
+                    </LinkTextButton>
+                  ) : (
+                    version.artistName || "-"
+                  )}
+                </dd>
+                {credits.map((credit) => (
+                  <div key={`${credit.label}-expanded`} className="contents">
+                    <dt className="font-semibold text-slate-500">{credit.label}</dt>
+                    <dd className="min-w-0 text-slate-900">
+                      <VersionCreditValue
+                        name={credit.name}
+                        creatorId={credit.creatorId}
+                        onOpenCreator={onOpenCreator}
+                      />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function getVersionCredits(version: SongVersionDetail) {
+  return [
+    { label: "作詞", shortLabel: "詞", name: version.lyricistName, creatorId: version.lyricistId },
+    { label: "作曲", shortLabel: "曲", name: version.composerName, creatorId: version.composerId },
+    { label: "編曲", shortLabel: "編", name: version.arrangerName, creatorId: version.arrangerId },
+  ].filter((credit) => Boolean(credit.name))
+}
+
+type VersionCreditChipProps = {
+  label: string
+  name: string | null
+  creatorId: number | null
+  onOpenCreator?: (creatorId: number) => void
+}
+
+function VersionCreditChip({
+  label,
+  name,
+  creatorId,
+  onOpenCreator,
+}: VersionCreditChipProps) {
+  return (
+    <span className="inline-flex max-w-[11rem] shrink-0 items-center gap-1 border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] leading-4 text-slate-600">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <VersionCreditValue
+        name={name}
+        creatorId={creatorId}
+        onOpenCreator={onOpenCreator}
+        className="truncate"
+      />
+    </span>
+  )
+}
+
+type VersionCreditValueProps = {
+  name: string | null
+  creatorId: number | null
+  onOpenCreator?: (creatorId: number) => void
+  className?: string
+}
+
+function VersionCreditValue({
+  name,
+  creatorId,
+  onOpenCreator,
+  className = "",
+}: VersionCreditValueProps) {
+  if (!name) return "-"
+  if (creatorId !== null && onOpenCreator) {
+    return (
+      <LinkTextButton
+        onClick={() => onOpenCreator(creatorId)}
+        className={`min-w-0 text-blue-700 ${className}`.trim()}
+      >
+        {name}
+      </LinkTextButton>
+    )
+  }
+  return <span className={`min-w-0 ${className}`.trim()}>{name}</span>
 }

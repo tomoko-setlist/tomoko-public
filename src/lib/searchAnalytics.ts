@@ -1,15 +1,22 @@
 import type { SearchMode } from "./searchUiState";
 import type {
-    AdvancedConditionField,
+    MemberSearchRequest,
+    MemberSearchResponse,
     SearchMethod,
     SearchRequest,
     SearchResponse,
     SearchSuggestField,
     SearchUnit,
+    SongRankingRequest,
+    SongRankingResponse,
+    SongSearchRequest,
+    SongSearchResponse,
 } from "./setlistSearchDb/types";
 
+type SearchAnalyticsEnvironment = "production" | "staging" | "local" | "unknown";
+type SearchAnalyticsSurface = SearchUnit | "song" | "member" | "ranking";
 type SearchAnalyticsTerm = {
-    field: AdvancedConditionField | "query" | "prefectureIds";
+    field: string;
     value: string;
     method?: SearchMethod;
 };
@@ -17,7 +24,8 @@ type SearchAnalyticsTerm = {
 type SearchAnalyticsPayload = {
     schemaVersion: 1;
     eventKind: "result" | "suggestion";
-    searchUnit: SearchUnit;
+    appEnvironment: SearchAnalyticsEnvironment;
+    searchUnit: SearchAnalyticsSurface;
     searchMode: SearchMode;
     resultCount: number;
     page: number;
@@ -37,7 +45,7 @@ const LAST_SENT_KEY = "tomoko-duc.search-analytics-last-sent.v1";
 const MAX_QUEUE_SIZE = 20;
 const MAX_TERMS = 20;
 const MAX_VALUE_LENGTH = 80;
-const SEND_DEBOUNCE_MS = 1500;
+const SEND_DEBOUNCE_MS = 5000;
 const DEDUPE_WINDOW_MS = 10 * 60 * 1000;
 const SUGGESTION_DEDUPE_WINDOW_MS = 10 * 60 * 1000;
 const PII_PATTERNS = [
@@ -58,6 +66,22 @@ const TEXT_FIELDS = [
     "eventTag",
     "sectionName",
 ] as const;
+
+const normalizeAppEnvironment = (value: unknown): SearchAnalyticsEnvironment => {
+    const text =
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+            ? String(value).trim().toLowerCase()
+            : "";
+    if (text === "production" || text === "prod") return "production";
+    if (text === "staging" || text === "stg") return "staging";
+    if (text === "local" || text === "development" || text === "dev") return "local";
+    return "unknown";
+};
+
+const currentAppEnvironment = (): SearchAnalyticsEnvironment =>
+    normalizeAppEnvironment(import.meta.env.VITE_APP_ENV);
 
 const sanitizeTermValue = (value: unknown): string | null => {
     if (
@@ -112,9 +136,17 @@ const isSearchAnalyticsPayload = (value: unknown): value is SearchAnalyticsPaylo
             (value as { schemaVersion?: unknown }).schemaVersion === 1 &&
             (((value as { eventKind?: unknown }).eventKind ?? "result") === "result" ||
                 (value as { eventKind?: unknown }).eventKind === "suggestion") &&
-            ((value as { searchUnit?: unknown }).searchUnit === "stage" ||
-                (value as { searchUnit?: unknown }).searchUnit === "setlist"),
+            isSearchAnalyticsSurface((value as { searchUnit?: unknown }).searchUnit),
     );
+
+const isSearchAnalyticsSurface = (
+    value: unknown,
+): value is SearchAnalyticsSurface =>
+    value === "stage" ||
+    value === "setlist" ||
+    value === "song" ||
+    value === "member" ||
+    value === "ranking";
 
 const writeQueue = (queue: SearchAnalyticsPayload[]): void => {
     if (typeof window === "undefined") return;
@@ -153,6 +185,7 @@ const sendPayload = (payload: SearchAnalyticsPayload): boolean => {
 const stablePayloadSignature = (payload: SearchAnalyticsPayload): string =>
     JSON.stringify({
         eventKind: payload.eventKind,
+        appEnvironment: payload.appEnvironment,
         searchUnit: payload.searchUnit,
         searchMode: payload.searchMode,
         terms: payload.terms,
@@ -253,6 +286,81 @@ const buildActiveFields = (request: SearchRequest, terms: SearchAnalyticsTerm[])
     return Array.from(fields).sort();
 };
 
+const pushAnalyticsTerm = (
+    terms: SearchAnalyticsTerm[],
+    field: string,
+    value: unknown,
+    method?: SearchMethod,
+): void => {
+    const sanitized = sanitizeTermValue(value);
+    if (!sanitized) return;
+    terms.push({ field, value: sanitized, method });
+};
+
+const buildActiveFieldsFromTerms = (
+    terms: SearchAnalyticsTerm[],
+    extraFields: string[] = [],
+): string[] =>
+    Array.from(
+        new Set([
+            ...terms.map((term) => term.field),
+            ...extraFields.filter((field) => field.trim().length > 0),
+        ]),
+    ).sort();
+
+const scheduleResultPayload = (payload: SearchAnalyticsPayload): void => {
+    pendingPayload = payload;
+    if (pendingTimer !== null) {
+        window.clearTimeout(pendingTimer);
+    }
+    pendingTimer = window.setTimeout(() => {
+        const idleCallback = window.requestIdleCallback;
+        if (idleCallback) {
+            idleCallback(sendPendingPayload, { timeout: 2000 });
+            return;
+        }
+        sendPendingPayload();
+    }, SEND_DEBOUNCE_MS);
+};
+
+export const recordGenericSearchAnalytics = (params: {
+    searchUnit: SearchAnalyticsSurface;
+    searchMode?: SearchMode;
+    resultCount: number;
+    page: number;
+    pageSize: number;
+    terms: SearchAnalyticsTerm[];
+    activeFields?: string[];
+    dateFrom?: string | null;
+    dateTo?: string | null;
+}): void => {
+    if (!isEnabled()) return;
+    const terms = params.terms.slice(0, MAX_TERMS);
+    const activeFields = buildActiveFieldsFromTerms(terms, params.activeFields).slice(
+        0,
+        MAX_TERMS,
+    );
+    if (activeFields.length === 0) return;
+
+    scheduleResultPayload({
+        schemaVersion: 1,
+        eventKind: "result",
+        appEnvironment: currentAppEnvironment(),
+        searchUnit: params.searchUnit,
+        searchMode: params.searchMode ?? "advanced",
+        resultCount: Math.max(0, Math.trunc(Number(params.resultCount) || 0)),
+        page: Math.max(1, Math.trunc(Number(params.page) || 1)),
+        pageSize: Math.max(1, Math.trunc(Number(params.pageSize) || 1)),
+        zeroResults: Number(params.resultCount) === 0,
+        terms,
+        activeFields,
+        dateFrom: sanitizeTermValue(params.dateFrom),
+        dateTo: sanitizeTermValue(params.dateTo),
+        path: window.location.pathname,
+        sentAtMs: Date.now(),
+    });
+};
+
 export const recordSearchAnalytics = (
     request: SearchRequest,
     response: SearchResponse,
@@ -266,6 +374,7 @@ export const recordSearchAnalytics = (
     const payload: SearchAnalyticsPayload = {
         schemaVersion: 1,
         eventKind: "result",
+        appEnvironment: currentAppEnvironment(),
         searchUnit: request.searchUnit,
         searchMode,
         resultCount: Math.max(0, Math.trunc(Number(response.total) || 0)),
@@ -280,18 +389,132 @@ export const recordSearchAnalytics = (
         sentAtMs: Date.now(),
     };
 
-    pendingPayload = payload;
-    if (pendingTimer !== null) {
-        window.clearTimeout(pendingTimer);
+    scheduleResultPayload(payload);
+};
+
+export const recordSongSearchAnalytics = (
+    request: SongSearchRequest,
+    response: SongSearchResponse,
+): void => {
+    const terms: SearchAnalyticsTerm[] = [];
+    pushAnalyticsTerm(terms, "query", request.term);
+    pushAnalyticsTerm(terms, "songName", request.songName, request.fieldSearchMethods.songName);
+    pushAnalyticsTerm(
+        terms,
+        "artistName",
+        request.artistName,
+        request.fieldSearchMethods.artistName,
+    );
+    pushAnalyticsTerm(
+        terms,
+        "lyricistName",
+        request.lyricistName,
+        request.fieldSearchMethods.lyricistName,
+    );
+    pushAnalyticsTerm(
+        terms,
+        "composerName",
+        request.composerName,
+        request.fieldSearchMethods.composerName,
+    );
+    pushAnalyticsTerm(
+        terms,
+        "arrangerName",
+        request.arrangerName,
+        request.fieldSearchMethods.arrangerName,
+    );
+    pushAnalyticsTerm(
+        terms,
+        "albumName",
+        request.albumName,
+        request.fieldSearchMethods.albumName,
+    );
+    const categories = request.songCategories ?? [];
+    const isDefaultCategory =
+        categories.length === 1 && Number(categories[0]) === 10;
+    if (categories.length > 0 && !isDefaultCategory) {
+        pushAnalyticsTerm(terms, "songCategory", categories.join(","), "exact");
     }
-    pendingTimer = window.setTimeout(() => {
-        const idleCallback = window.requestIdleCallback;
-        if (idleCallback) {
-            idleCallback(sendPendingPayload, { timeout: 2000 });
-            return;
+    const activeFields = [];
+    if (request.releaseDateFrom || request.releaseDateTo) activeFields.push("releaseDate");
+    recordGenericSearchAnalytics({
+        searchUnit: "song",
+        resultCount: response.total,
+        page: response.page,
+        pageSize: response.limit,
+        terms,
+        activeFields,
+        dateFrom: request.releaseDateFrom,
+        dateTo: request.releaseDateTo,
+    });
+};
+
+export const recordMemberSearchAnalytics = (
+    request: MemberSearchRequest,
+    response: MemberSearchResponse,
+): void => {
+    const terms: SearchAnalyticsTerm[] = [];
+    pushAnalyticsTerm(terms, "query", request.term);
+    pushAnalyticsTerm(terms, "personName", request.personName);
+    pushAnalyticsTerm(terms, "groupName", request.groupName);
+    pushAnalyticsTerm(terms, "prefectureIds", request.prefectureIds, "exact");
+    pushAnalyticsTerm(terms, "prefectureName", request.prefectureName);
+    pushAnalyticsTerm(terms, "birthMonth", request.birthMonths, "exact");
+    if (request.activeStatus && request.activeStatus !== "all") {
+        pushAnalyticsTerm(terms, "activeStatus", request.activeStatus, "exact");
+    }
+    pushAnalyticsTerm(terms, "bloodType", request.bloodType, "exact");
+    pushAnalyticsTerm(terms, "generation", request.generation);
+    pushAnalyticsTerm(terms, "roleName", request.roleName);
+    pushAnalyticsTerm(terms, "colorName", request.colorName);
+    const activeFields = [];
+    if (request.birthdayFrom || request.birthdayTo) activeFields.push("birthday");
+    if (request.joinedFrom || request.joinedTo) activeFields.push("joinedDate");
+    recordGenericSearchAnalytics({
+        searchUnit: "member",
+        resultCount: response.total,
+        page: response.page,
+        pageSize: response.limit,
+        terms,
+        activeFields,
+        dateFrom: request.birthdayFrom ?? request.joinedFrom,
+        dateTo: request.birthdayTo ?? request.joinedTo,
+    });
+};
+
+export const recordSongRankingAnalytics = (
+    request: SongRankingRequest,
+    response: SongRankingResponse,
+): void => {
+    const terms: SearchAnalyticsTerm[] = [];
+    pushAnalyticsTerm(terms, "rankingBy", request.rankingBy ?? "song", "exact");
+    for (const group of request.conditionGroups) {
+        for (const condition of group.conditions) {
+            pushAnalyticsTerm(
+                terms,
+                condition.field,
+                condition.value,
+                condition.method === "eq" || condition.method === "not"
+                    ? condition.method === "not"
+                        ? "notExact"
+                        : "exact"
+                    : condition.method,
+            );
         }
-        sendPendingPayload();
-    }, SEND_DEBOUNCE_MS);
+    }
+    const activeFields = ["rankingBy"];
+    if (request.conditionGroups.length > 0) activeFields.push("conditionGroups");
+    if (request.dateFrom || request.dateTo) activeFields.push("date");
+    recordGenericSearchAnalytics({
+        searchUnit: "ranking",
+        resultCount: response.total,
+        page: response.page,
+        pageSize: response.limit,
+        terms,
+        activeFields,
+        dateFrom: request.dateFrom,
+        dateTo: request.dateTo,
+    });
 };
 
 const suggestionFieldToAnalyticsField = (
@@ -331,6 +554,7 @@ export const recordSuggestionAnalytics = (params: {
     const payload: SearchAnalyticsPayload = {
         schemaVersion: 1,
         eventKind: "suggestion",
+        appEnvironment: currentAppEnvironment(),
         searchUnit: params.searchUnit,
         searchMode: params.searchMode ?? "advanced",
         resultCount: 0,

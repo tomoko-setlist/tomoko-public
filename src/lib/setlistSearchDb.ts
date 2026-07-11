@@ -1,3 +1,4 @@
+import { getCalendarMonth } from './setlistSearchDb/calendarQueries'
 import {
   getAlbumDetail,
   getAlbumsBySong,
@@ -248,6 +249,8 @@ export const createSetlistSearchDb = async (
   const getHomeDailyDigestByDate = async (referenceDate: string) =>
     getHomeDailyDigest(conn, referenceDate)
   const getDashboardDataFn = async () => getDashboardData(conn)
+  const getCalendarMonthFn = async (year: number, month: number) =>
+    getCalendarMonth(conn, year, month)
 
   const close = (): void => {
     void conn.close()
@@ -314,6 +317,7 @@ export const createSetlistSearchDb = async (
     getReleaseDbChanges: getReleaseDbChangesById,
     getHomeDailyDigest: getHomeDailyDigestByDate,
     getDashboardData: getDashboardDataFn,
+    getCalendarMonth: getCalendarMonthFn,
     close,
   }
 }

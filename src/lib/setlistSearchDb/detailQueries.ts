@@ -6,6 +6,7 @@ import {
     toText,
 } from "./queryUtils";
 import { hasTableColumnAsync } from "./tableSchemaCache";
+export { getCalendarMonth } from "./calendarQueries";
 export { getHomeDailyDigest } from "./homeDigestQueries";
 export {
     getDashboardData,

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { DetailRouteContent, InitialSyncOverlay } from "./components/app";
+import { CalendarPage } from "./components/calendar";
 import {
     SearchDesktopHeader,
     SearchMobileNav,
@@ -12,7 +13,9 @@ import { useAnnouncementState } from "./hooks/useAnnouncementState";
 import { useAppRoute } from "./hooks/useAppRoute";
 import { usePageMeta } from "./hooks/usePageMeta";
 import { isDbDetailUsable, isDbStatusUsable, useSetlistSearchDb } from "./hooks/useSetlistSearchDb";
+import { buildRouteKey } from "./lib/appRoute";
 import { STORAGE_FLAG_ON } from "./lib/constants/stateFlags";
+import { getInitialDetailDataForRoute } from "./lib/initialDetailData";
 import { privateFeatureRegistry } from "./lib/privateFeatureRegistry";
 import {
     buildBreadcrumbRoutes,
@@ -66,6 +69,19 @@ function App() {
                 : route,
         [adminEnabled, isAdminRoute, isStatsRoute, route, statsEnabled],
     );
+    const initialDetailData = useMemo(
+        () => getInitialDetailDataForRoute(effectiveRoute),
+        [effectiveRoute],
+    );
+    const effectiveRouteTitles = useMemo(() => {
+        if (!initialDetailData) return routeTitles;
+        const routeKey = buildRouteKey(effectiveRoute);
+        if (routeTitles[routeKey]) return routeTitles;
+        return {
+            ...routeTitles,
+            [routeKey]: initialDetailData.title,
+        };
+    }, [effectiveRoute, initialDetailData, routeTitles]);
     const effectiveIsAdmin = adminEnabled && isAdminRoute;
     const isKrnStandalone = effectiveRoute.name === "krn";
     const showInitialLoading =
@@ -76,11 +92,12 @@ function App() {
         db,
         route: effectiveRoute,
     });
-    usePageMeta({ route: effectiveRoute, routeTitles });
-    const headerTitle = routeLabel(effectiveRoute, routeTitles);
+    usePageMeta({ route: effectiveRoute, routeTitles: effectiveRouteTitles });
+    const headerTitle = routeLabel(effectiveRoute, effectiveRouteTitles);
     const headerBreadcrumbs = buildBreadcrumbRoutes(history, effectiveRoute);
     const navActions = {
         onOpenHome: () => navigate({ name: "home" }),
+        onOpenCalendar: () => navigate({ name: "calendar" }),
         onOpenSongSearch: () => navigate({ name: "song-search" }),
         onOpenSongRanking: () => navigate({ name: "song-ranking" }),
         onOpenMemberSearch: () => navigate({ name: "member-search" }),
@@ -142,6 +159,7 @@ function App() {
                         isSongSearch={effectiveRoute.name === "song-search"}
                         isSongRanking={effectiveRoute.name === "song-ranking"}
                         isMemberSearch={effectiveRoute.name === "member-search"}
+                        isCalendar={effectiveRoute.name === "calendar"}
                         isKrn={false}
                         isAbout={effectiveRoute.name === "about"}
                         isArticles={effectiveRoute.name === "articles" || effectiveRoute.name === "article"}
@@ -161,7 +179,7 @@ function App() {
                         onOpenHome={navActions.onOpenHome}
                         title={headerTitle}
                         breadcrumbs={headerBreadcrumbs}
-                        routeTitles={routeTitles}
+                        routeTitles={effectiveRouteTitles}
                         onNavigateBreadcrumb={handleNavigateBreadcrumb}
                     />
 
@@ -169,6 +187,7 @@ function App() {
                         isSongSearch={effectiveRoute.name === "song-search"}
                         isSongRanking={effectiveRoute.name === "song-ranking"}
                         isMemberSearch={effectiveRoute.name === "member-search"}
+                        isCalendar={effectiveRoute.name === "calendar"}
                         isKrn={false}
                         isAbout={effectiveRoute.name === "about"}
                         isArticles={effectiveRoute.name === "articles" || effectiveRoute.name === "article"}
@@ -205,11 +224,16 @@ function App() {
                             dbState={dbState}
                             navigate={navigate}
                         />
+                    ) : effectiveRoute.name === "calendar" ? (
+                        <CalendarPage
+                            db={isDbDetailUsable(dbState.status) ? db : null}
+                            navigate={navigate}
+                        />
                     ) : (
                         <DetailRouteContent
                             route={effectiveRoute}
                             history={history}
-                            routeTitles={routeTitles}
+                            routeTitles={effectiveRouteTitles}
                             setRouteTitles={setRouteTitles}
                             db={isDbDetailUsable(dbState.status) ? db : null}
                             navigate={navigate}

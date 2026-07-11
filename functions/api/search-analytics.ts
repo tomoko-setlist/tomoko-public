@@ -18,6 +18,8 @@ type RawSearchAnalyticsTerm = {
 type RawSearchAnalyticsRequest = {
     schemaVersion?: unknown;
     eventKind?: unknown;
+    appEnvironment?: unknown;
+    environment?: unknown;
     searchUnit?: unknown;
     searchMode?: unknown;
     resultCount?: unknown;
@@ -41,7 +43,8 @@ type SearchAnalyticsTerm = {
 type SearchAnalyticsRecord = {
     schemaVersion: number;
     eventKind: "result" | "suggestion";
-    searchUnit: "stage" | "setlist";
+    appEnvironment: "production" | "staging" | "local" | "unknown";
+    searchUnit: "stage" | "setlist" | "song" | "member" | "ranking";
     searchMode: "simple" | "advanced";
     resultCount: number;
     page: number;
@@ -72,8 +75,28 @@ const ALLOWED_FIELDS = new Set([
     "venueName",
     "eventTag",
     "sectionName",
+    "section",
+    "albumName",
+    "songCategory",
+    "releaseDate",
+    "groupName",
     "prefectureId",
     "prefectureIds",
+    "prefectureName",
+    "joinedDate",
+    "birthday",
+    "birthMonth",
+    "activeStatus",
+    "bloodType",
+    "generation",
+    "roleName",
+    "colorName",
+    "rankingBy",
+    "performerName",
+    "performerGroupName",
+    "remarks",
+    "conditionGroups",
+    "date",
 ]);
 const ALLOWED_METHODS = new Set([
     "contains",
@@ -88,32 +111,6 @@ const PII_PATTERNS = [
     /https?:\/\/\S+|www\.\S+/giu,
     /(?:\+?\d[\d\s().-]{8,}\d)/gu,
 ];
-const SCHEMA_STATEMENTS = [
-    `CREATE TABLE IF NOT EXISTS search_usage_events (
-	      id INTEGER PRIMARY KEY AUTOINCREMENT,
-	      created_at_ms INTEGER NOT NULL,
-	      schema_version INTEGER NOT NULL,
-	      search_unit TEXT NOT NULL,
-      search_mode TEXT NOT NULL,
-      result_count INTEGER NOT NULL,
-      zero_results INTEGER NOT NULL,
-      page INTEGER NOT NULL,
-      page_size INTEGER NOT NULL,
-      terms_json TEXT NOT NULL,
-      active_fields_csv TEXT NOT NULL,
-      date_from TEXT,
-      date_to TEXT,
-      path TEXT NOT NULL,
-      client_sent_at_ms INTEGER
-    )`,
-    `CREATE INDEX IF NOT EXISTS idx_search_usage_events_created_at_ms
-      ON search_usage_events(created_at_ms DESC)`,
-    `CREATE INDEX IF NOT EXISTS idx_search_usage_events_zero_results
-      ON search_usage_events(zero_results, created_at_ms DESC)`,
-	    `CREATE INDEX IF NOT EXISTS idx_search_usage_events_unit_mode
-	      ON search_usage_events(search_unit, search_mode, created_at_ms DESC)`,
-] as const;
-
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const rejectedOrigin = rejectDisallowedOrigin(context.request);
     if (rejectedOrigin) return rejectedOrigin;
@@ -160,9 +157,12 @@ export const sanitizeSearchAnalyticsText = (value: unknown): string | null => {
 export const buildSearchAnalyticsRecord = (
     body: RawSearchAnalyticsRequest,
 ): SearchAnalyticsRecord | null => {
-    const searchUnit = body.searchUnit === "stage" ? "stage" : "setlist";
+    const searchUnit = sanitizeSearchUnit(body.searchUnit);
     const searchMode = body.searchMode === "simple" ? "simple" : "advanced";
     const eventKind = body.eventKind === "suggestion" ? "suggestion" : "result";
+    const appEnvironment = sanitizeAppEnvironment(
+        body.appEnvironment ?? body.environment,
+    );
     const resultCount = Math.max(0, toFiniteInt(body.resultCount) ?? 0);
     const page = Math.max(1, toFiniteInt(body.page) ?? 1);
     const pageSize = Math.max(1, Math.min(500, toFiniteInt(body.pageSize) ?? 50));
@@ -202,12 +202,14 @@ export const buildSearchAnalyticsRecord = (
     return {
         schemaVersion: 1,
         eventKind,
+        appEnvironment,
         searchUnit,
         searchMode,
         resultCount,
         page,
         pageSize,
-        zeroResults: body.zeroResults === true || resultCount === 0,
+        zeroResults:
+            eventKind === "result" && (body.zeroResults === true || resultCount === 0),
         terms,
         activeFields: activeFields.sort(),
         dateFrom: sanitizeDate(body.dateFrom),
@@ -221,14 +223,7 @@ const persistSearchAnalytics = async (
     db: D1Database,
     record: SearchAnalyticsRecord,
 ): Promise<void> => {
-    try {
-        await ensureSearchAnalyticsSchema(db);
-        await insertSearchAnalytics(db, record);
-    } catch (error) {
-        if (!isMissingStorageError(error)) throw error;
-        await ensureSearchAnalyticsSchema(db);
-        await insertSearchAnalytics(db, record);
-    }
+    await insertSearchAnalytics(db, record);
 };
 
 const insertSearchAnalytics = async (
@@ -238,14 +233,16 @@ const insertSearchAnalytics = async (
     await db
         .prepare(
             `INSERT INTO search_usage_events
-            (created_at_ms, schema_version, search_unit, search_mode, result_count,
+            (created_at_ms, schema_version, event_kind, app_environment, search_unit, search_mode, result_count,
              zero_results, page, page_size, terms_json, active_fields_csv, date_from,
              date_to, path, client_sent_at_ms)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
             Date.now(),
             record.schemaVersion,
+            record.eventKind,
+            record.appEnvironment,
             record.searchUnit,
             record.searchMode,
             record.resultCount,
@@ -262,16 +259,36 @@ const insertSearchAnalytics = async (
         .run();
 };
 
-const ensureSearchAnalyticsSchema = async (db: D1Database): Promise<void> => {
-    for (const statement of SCHEMA_STATEMENTS) {
-        await db.prepare(statement).run();
-    }
-};
-
 const clampToken = (value: unknown, maxLength: number): string | null => {
     const text = String(value ?? "").trim();
     if (!text || text.length > maxLength) return null;
     return /^[a-zA-Z0-9_-]+$/u.test(text) ? text : null;
+};
+
+const sanitizeSearchUnit = (
+    value: unknown,
+): SearchAnalyticsRecord["searchUnit"] => {
+    const text = String(value ?? "").trim();
+    if (
+        text === "stage" ||
+        text === "setlist" ||
+        text === "song" ||
+        text === "member" ||
+        text === "ranking"
+    ) {
+        return text;
+    }
+    return "setlist";
+};
+
+const sanitizeAppEnvironment = (
+    value: unknown,
+): SearchAnalyticsRecord["appEnvironment"] => {
+    const text = String(value ?? "").trim().toLowerCase();
+    if (text === "production" || text === "prod") return "production";
+    if (text === "staging" || text === "stg") return "staging";
+    if (text === "local" || text === "development" || text === "dev") return "local";
+    return "unknown";
 };
 
 const sanitizeDate = (value: unknown): string | null => {
@@ -284,9 +301,4 @@ const sanitizePath = (value: unknown): string => {
     if (!text.startsWith("/")) return "/";
     const path = text.split(/[?#]/u)[0] ?? "/";
     return path.slice(0, MAX_PATH_LENGTH);
-};
-
-const isMissingStorageError = (error: unknown): boolean => {
-    if (!(error instanceof Error)) return false;
-    return /no such table/i.test(error.message);
 };

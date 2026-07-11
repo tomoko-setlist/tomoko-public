@@ -13,6 +13,7 @@ import {
 type SearchSidebarProps = {
     isSongSearch: boolean;
     isSongRanking: boolean;
+    isCalendar?: boolean;
     isMemberSearch: boolean;
     isKrn: boolean;
     isAbout: boolean;
@@ -28,6 +29,7 @@ type SearchSidebarProps = {
     onOpenHome: () => void;
     onOpenSongSearch: () => void;
     onOpenSongRanking: () => void;
+    onOpenCalendar?: () => void;
     onOpenMemberSearch: () => void;
     onOpenKrn: () => void;
     onOpenArticles: () => void;
@@ -42,6 +44,7 @@ type SearchSidebarProps = {
 export function SearchSidebar({
     isSongSearch,
     isSongRanking,
+    isCalendar = false,
     isMemberSearch,
     isKrn,
     isAbout,
@@ -57,6 +60,7 @@ export function SearchSidebar({
     onOpenHome,
     onOpenSongSearch,
     onOpenSongRanking,
+    onOpenCalendar,
     onOpenMemberSearch,
     onOpenKrn,
     onOpenArticles,
@@ -76,6 +80,7 @@ export function SearchSidebar({
     const navState: SearchNavState = {
         isSongSearch,
         isSongRanking,
+        isCalendar,
         isMemberSearch,
         isKrn,
         isAbout,
@@ -89,6 +94,7 @@ export function SearchSidebar({
         home: onOpenHome,
         song: onOpenSongSearch,
         ranking: onOpenSongRanking,
+        calendar: onOpenCalendar ?? (() => undefined),
         member: onOpenMemberSearch,
         krn: onOpenKrn,
         articles: onOpenArticles,
@@ -225,6 +231,11 @@ function SidebarNavButton({
                         {unreadBadgeText}
                     </span>
                 ) : null}
+                {item.isNew && collapsed ? (
+                    <span className="absolute -right-1 -top-1 inline-flex h-3 min-w-3 items-center justify-center bg-rose-500 px-0.5 text-[7px] font-black leading-none text-white">
+                        N
+                    </span>
+                ) : null}
             </span>
             <span
                 className={`overflow-hidden whitespace-nowrap text-left transition-[opacity,width] duration-200 ${
@@ -234,6 +245,11 @@ function SidebarNavButton({
                 }`}
             >
                 {item.label}
+                {item.isNew ? (
+                    <span className="ml-1.5 inline-flex h-4 items-center bg-rose-500 px-1 text-[9px] font-black leading-none text-white">
+                        NEW
+                    </span>
+                ) : null}
             </span>
         </button>
     );

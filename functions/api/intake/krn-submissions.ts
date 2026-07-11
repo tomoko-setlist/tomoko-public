@@ -62,57 +62,6 @@ const MAX_ROWS = 400;
 const MAX_SUBMISSIONS_PER_MINUTE = 10;
 const MAX_SUBMISSIONS_PER_DAY = 120;
 const ALLOWED_OUTPUT_FORMATS = new Set(["text", "csv", "image", "html", "twitter"]);
-const KRN_SCHEMA_STATEMENTS = [
-    `CREATE TABLE IF NOT EXISTS submission_headers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      created_at_ms INTEGER NOT NULL,
-      source TEXT NOT NULL DEFAULT 'krn',
-      status TEXT NOT NULL DEFAULT 'pending',
-      event_name TEXT,
-      stage_date TEXT,
-      start_time TEXT,
-      venue_name TEXT,
-      pattern TEXT,
-      stage_id INTEGER,
-      event_id INTEGER,
-      output_format TEXT NOT NULL,
-      notify_tomoko INTEGER NOT NULL DEFAULT 1,
-      include_event INTEGER NOT NULL DEFAULT 1,
-      include_artist INTEGER NOT NULL DEFAULT 1,
-      include_performer INTEGER NOT NULL DEFAULT 1,
-      performer_delimiter TEXT,
-      line_count INTEGER NOT NULL DEFAULT 0,
-      music_count INTEGER NOT NULL DEFAULT 0,
-      export_preview TEXT,
-      payload_json TEXT NOT NULL,
-      ip TEXT,
-      user_agent TEXT,
-      referer TEXT
-    )`,
-    `CREATE TABLE IF NOT EXISTS submission_entries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      submission_id INTEGER NOT NULL,
-      line_order INTEGER NOT NULL,
-      music_order INTEGER,
-      section TEXT,
-      display_name TEXT NOT NULL,
-      is_mc INTEGER NOT NULL DEFAULT 0,
-      is_medley INTEGER NOT NULL DEFAULT 0,
-      is_new_song INTEGER NOT NULL DEFAULT 0,
-      note TEXT,
-      song_id INTEGER,
-      song_version_id INTEGER,
-      artist_name TEXT,
-      performers TEXT,
-      FOREIGN KEY (submission_id) REFERENCES submission_headers(id) ON DELETE CASCADE
-    )`,
-    `CREATE INDEX IF NOT EXISTS idx_submission_headers_created_at_ms
-      ON submission_headers(created_at_ms DESC)`,
-    `CREATE INDEX IF NOT EXISTS idx_submission_headers_status_created
-      ON submission_headers(status, created_at_ms DESC)`,
-    `CREATE INDEX IF NOT EXISTS idx_submission_entries_submission_line
-      ON submission_entries(submission_id, line_order ASC)`,
-] as const;
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const rejectedOrigin = rejectDisallowedOrigin(context.request);
@@ -336,6 +285,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     try {
         const saved = await persistSubmission();
+        if (saved instanceof Response) return saved;
         return json(
             {
                 ok: true,
@@ -346,22 +296,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             200,
         );
     } catch (error) {
-        if (isMissingTableError(error)) {
-            try {
-                await ensureKrnSchema(db);
-                const saved = await persistSubmission();
-                return json(
-                    {
-                        ok: true,
-                        id: saved.submissionId,
-                        lineCount: saved.lineCount,
-                        musicCount: saved.musicCount,
-                    },
-                    200,
-                );
-            } catch {
-                return json({ error: "受付DBの初期化が必要です。" }, 503);
-            }
+        if (isMissingSchemaError(error)) {
+            return json({ error: "受付DBのマイグレーションが必要です。" }, 503);
         }
         return json({ error: "保存に失敗しました。" }, 500);
     }
@@ -475,13 +411,7 @@ const normalizeEntries = (entries: KrnSubmissionEntry[]): NormalizeEntriesResult
     return { value: normalized };
 };
 
-const isMissingTableError = (error: unknown): boolean => {
+const isMissingSchemaError = (error: unknown): boolean => {
     if (!(error instanceof Error)) return false;
-    return /no such table/i.test(error.message);
-};
-
-const ensureKrnSchema = async (db: D1Database): Promise<void> => {
-    for (const statement of KRN_SCHEMA_STATEMENTS) {
-        await db.prepare(statement).run();
-    }
+    return /no such table|no such column|no column named/i.test(error.message);
 };

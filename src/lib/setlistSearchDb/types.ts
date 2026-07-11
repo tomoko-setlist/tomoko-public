@@ -943,6 +943,109 @@ export type GroupDetail = {
     totalMembers: number;
 };
 
+export type CalendarEventKind =
+    | "birthday"
+    | "groupJoin"
+    | "hpJoin"
+    | "graduation"
+    | "groupFormation"
+    | "groupDebut"
+    | "stage";
+
+export type CalendarStage = {
+    stageId: number;
+    startTime: string | null;
+    venueId: number | null;
+    venueName: string | null;
+    prefectureName: string | null;
+    cancelled: boolean;
+    hasSetlist: boolean;
+};
+
+export type CalendarLiveEvent = {
+    id: string;
+    date: string;
+    kind: "stage";
+    eventId: number;
+    title: string;
+    stages: CalendarStage[];
+    eventTags: string[];
+};
+
+export type CalendarPersonSummary = {
+    personId: number;
+    personName: string;
+};
+
+export type CalendarGraduationScope = {
+    type: "group" | "helloProject";
+    groupId: number | null;
+    label: string;
+};
+
+export type CalendarBasicAnniversaryEvent = {
+    id: string;
+    date: string;
+    sourceDate: string;
+    kind: "birthday" | "hpJoin" | "groupFormation" | "groupDebut";
+    title: string;
+    subtitle: string | null;
+    anniversaryYears: number;
+    targetType: "member" | "group";
+    targetId: number;
+    relatedGroupId: number | null;
+};
+
+export type CalendarGroupJoinEvent = {
+    id: string;
+    date: string;
+    sourceDate: string;
+    kind: "groupJoin";
+    title: string;
+    subtitle: string;
+    anniversaryYears: number;
+    targetType: "group";
+    targetId: number;
+    relatedGroupId: number;
+    members: CalendarPersonSummary[];
+};
+
+export type CalendarGraduationEvent = {
+    id: string;
+    date: string;
+    sourceDate: string;
+    kind: "graduation";
+    title: string;
+    subtitle: string;
+    anniversaryYears: number;
+    targetType: "member";
+    targetId: number;
+    relatedGroupId: null;
+    scopes: CalendarGraduationScope[];
+};
+
+export type CalendarAnniversaryEvent =
+    | CalendarBasicAnniversaryEvent
+    | CalendarGroupJoinEvent
+    | CalendarGraduationEvent;
+
+export type CalendarEvent = CalendarLiveEvent | CalendarAnniversaryEvent;
+
+export type CalendarDay = {
+    date: string;
+    events: CalendarEvent[];
+};
+
+export type CalendarMonth = {
+    month: string;
+    days: CalendarDay[];
+    totals: {
+        liveEvents: number;
+        stages: number;
+        anniversaries: number;
+    };
+};
+
 export type SetlistSearchDb = {
     // Resolves once all tables (including non-core ones) are loaded.
     // The db is returned as soon as core tables are queryable.
@@ -1028,5 +1131,6 @@ export type SetlistSearchDb = {
     ) => Promise<ReleaseDbChange[]>;
     getHomeDailyDigest?: (referenceDate: string) => Promise<HomeDailyDigest>;
     getDashboardData?: () => Promise<DashboardData>;
+    getCalendarMonth: (year: number, month: number) => Promise<CalendarMonth>;
     close: () => void;
 };
